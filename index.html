@@ -288,7 +288,18 @@ anchor.group.add(symbol);
 
 
 await mindarThree.start();
+const video = document.querySelector("video");
 
+console.log("VIDEO:", video);
+console.log("WIDTH:", video.videoWidth);
+console.log("HEIGHT:", video.videoHeight);
+
+alert(
+    "AR camera: " +
+    video.videoWidth +
+    " × " +
+    video.videoHeight
+);
 
 
 /* =====================================
