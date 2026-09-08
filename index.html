@@ -1,363 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Remote Repair AR</title>
 
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
     <style>
-
-        html,
         body {
-
             margin: 0;
-            padding: 0;
-
-            width: 100%;
-            height: 100%;
-
             overflow: hidden;
-
-            background: black;
-
-        }
-
-        #ar-container {
-
-            width: 100%;
-            height: 100%;
-
-            position: fixed;
-
-            top: 0;
-            left: 0;
-
         }
 
         #status {
-
             position: fixed;
-
             top: 20px;
-            left: 0;
-
             width: 100%;
-
             text-align: center;
-
             color: white;
-
-            font-family: Arial, sans-serif;
-
+            font-family: Arial;
             font-size: 18px;
-
+            z-index: 10;
             text-shadow: 0 2px 5px black;
-
-            z-index: 100;
-
         }
-
     </style>
-
 </head>
-
 
 <body>
 
+<div id="status">Starting camera...</div>
 
-<div id="status">
+<a-scene
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1;"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
 
-    Point camera at the generator
+    <a-camera
+        position="0 0 0"
+        look-controls="enabled: false">
+    </a-camera>
 
-</div>
+    <a-entity
+        id="generator-target"
+        mindar-image-target="targetIndex: 0">
 
+        <!-- Simple test AR marker -->
+        <a-ring
+            position="0 0 0.05"
+            radius-inner="0.08"
+            radius-outer="0.10"
+            color="lime"
+            opacity="0.9">
 
-<div id="ar-container"></div>
+            <a-animation
+                attribute="rotation"
+                to="0 0 360"
+                dur="1500"
+                easing="linear"
+                repeat="indefinite">
+            </a-animation>
 
+        </a-ring>
 
-<script type="module">
+    </a-entity>
 
-import * as THREE from
-"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+</a-scene>
 
+<script>
 
-import { MindARThree } from
-"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js";
+const target = document.querySelector("#generator-target");
+const status = document.querySelector("#status");
 
-
-
-/* =====================================
-   CREATE MINDAR
-===================================== */
-
-
-const mindarThree = new MindARThree({
-
-    container:
-        document.querySelector("#ar-container"),
-
-    imageTargetSrc:
-        "./targets.mind",
-
-    maxTrack: 1,
-
-    resolution:
-        "1080p",
-
-    targetFPS:
-        30
-
+target.addEventListener("targetFound", () => {
+    status.innerText = "GENERATOR DETECTED";
 });
 
-
-/* =====================================
-   THREE.JS
-===================================== */
-
-
-const { renderer, scene, camera } =
-    mindarThree;
-
-
-
-/* =====================================
-   LIGHT
-===================================== */
-
-
-const light =
-    new THREE.HemisphereLight(
-        0xffffff,
-        0xbbbbff,
-        1
-    );
-
-scene.add(light);
-
-
-
-/* =====================================
-   TARGET ANCHOR
-===================================== */
-
-
-const anchor =
-    mindarThree.addAnchor(0);
-
-
-
-/* =====================================
-   ROTATION RING
-===================================== */
-
-
-const geometry =
-    new THREE.RingGeometry(
-        0.055,
-        0.075,
-        64
-    );
-
-
-const material =
-    new THREE.MeshBasicMaterial({
-
-        color: 0x00ff66,
-
-        transparent: true,
-
-        opacity: 0.9,
-
-        side: THREE.DoubleSide
-
-    });
-
-
-const ring =
-    new THREE.Mesh(
-        geometry,
-        material
-    );
-
-
-/*
-    Position relative to
-    generator image
-*/
-
-
-ring.position.set(
-
-    -0.16,
-     0.33,
-     0.05
-
-);
-
-
-anchor.group.add(ring);
-
-
-
-/* =====================================
-   ROTATION SYMBOL
-===================================== */
-
-
-const canvas =
-    document.createElement("canvas");
-
-
-canvas.width = 256;
-canvas.height = 256;
-
-
-const ctx =
-    canvas.getContext("2d");
-
-
-ctx.fillStyle =
-    "#00ff66";
-
-
-ctx.font =
-    "180px Arial";
-
-
-ctx.textAlign =
-    "center";
-
-
-ctx.textBaseline =
-    "middle";
-
-
-ctx.fillText(
-    "↻",
-    128,
-    128
-);
-
-
-const texture =
-    new THREE.CanvasTexture(canvas);
-
-
-const symbolMaterial =
-    new THREE.SpriteMaterial({
-
-        map: texture,
-
-        transparent: true
-
-    });
-
-
-const symbol =
-    new THREE.Sprite(
-        symbolMaterial
-    );
-
-
-symbol.scale.set(
-    0.20,
-    0.20,
-    0.20
-);
-
-
-symbol.position.set(
-    -0.16,
-    0.33,
-    0.06
-);
-
-
-anchor.group.add(symbol);
-
-
-
-/* =====================================
-   START AR
-===================================== */
-
-
-await mindarThree.start();
-const video = document.querySelector("video");
-
-console.log("VIDEO:", video);
-console.log("WIDTH:", video.videoWidth);
-console.log("HEIGHT:", video.videoHeight);
-
-alert(
-    "AR camera: " +
-    video.videoWidth +
-    " × " +
-    video.videoHeight
-);
-
-
-/* =====================================
-   AR LOOP
-===================================== */
-
-
-renderer.setAnimationLoop(() => {
-
-
-    /*
-        Rotate the repair indicator
-    */
-
-    ring.rotation.z +=
-        0.03;
-
-
-    symbol.rotation.z -=
-        0.03;
-
-
-    renderer.render(
-        scene,
-        camera
-    );
-
-
+target.addEventListener("targetLost", () => {
+    status.innerText = "Point camera at generator";
 });
-
-
-/* =====================================
-   CAMERA INFORMATION
-===================================== */
-
-
-setTimeout(() => {
-
-    const video =
-        document.querySelector("video");
-
-    if (video) {
-
-        console.log(
-            "Camera:",
-            video.videoWidth,
-            "x",
-            video.videoHeight
-        );
-
-    }
-
-}, 3000);
-
 
 </script>
 
-
 </body>
-
 </html>
