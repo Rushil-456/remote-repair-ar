@@ -59,7 +59,9 @@
 
 
 <div id="status">
+
     Point camera at generator
+
 </div>
 
 
@@ -74,6 +76,10 @@
 
     device-orientation-permission-ui="enabled: false"
 
+    renderer="
+        colorManagement: true;
+    "
+
 >
 
 
@@ -85,13 +91,14 @@
     </a-camera>
 
 
-    <!-- LIGHT -->
+    <!-- LIGHTING -->
 
     <a-light
         type="ambient"
         color="#ffffff"
         intensity="2">
     </a-light>
+
 
     <a-light
         type="directional"
@@ -101,7 +108,7 @@
 
 
     <!-- ================================= -->
-    <!-- GENERATOR TARGET -->
+    <!-- GENERATOR IMAGE TARGET -->
     <!-- ================================= -->
 
     <a-entity
@@ -110,27 +117,31 @@
 
 
         <!-- ================================= -->
-        <!-- 3D REMOVABLE COMPONENT -->
+        <!-- 3D LEVER ASSEMBLY -->
         <!-- ================================= -->
 
         <a-entity
-            id="removable-component"
 
-            position="0.20 -0.18 0.12"
+            id="repair-lever"
+
+            position="0.16 -0.18 0.12"
 
             scale="0.8 0.8 0.8"
+
         >
 
 
             <!-- ================================= -->
-            <!-- MOUNTING PLATE -->
+            <!-- MOUNTING BASE -->
             <!-- ================================= -->
 
             <a-box
 
-                width="0.18"
-                height="0.14"
-                depth="0.04"
+                position="0 0 0"
+
+                width="0.14"
+                height="0.09"
+                depth="0.035"
 
                 color="#555555"
 
@@ -139,81 +150,69 @@
 
 
             <!-- ================================= -->
-            <!-- FOUR BOLTS -->
+            <!-- PIVOT CYLINDER -->
             <!-- ================================= -->
 
             <a-cylinder
-                position="-0.07 0.05 0.035"
-                radius="0.012"
-                height="0.015"
+
+                position="0 0 0.035"
+
+                radius="0.035"
+
+                height="0.045"
+
                 rotation="90 0 0"
-                color="#bbbbbb">
-            </a-cylinder>
 
+                color="#aaaaaa"
 
-            <a-cylinder
-                position="0.07 0.05 0.035"
-                radius="0.012"
-                height="0.015"
-                rotation="90 0 0"
-                color="#bbbbbb">
-            </a-cylinder>
-
-
-            <a-cylinder
-                position="-0.07 -0.05 0.035"
-                radius="0.012"
-                height="0.015"
-                rotation="90 0 0"
-                color="#bbbbbb">
-            </a-cylinder>
-
-
-            <a-cylinder
-                position="0.07 -0.05 0.035"
-                radius="0.012"
-                height="0.015"
-                rotation="90 0 0"
-                color="#bbbbbb">
+            >
             </a-cylinder>
 
 
             <!-- ================================= -->
-            <!-- REMOVABLE COVER -->
+            <!-- MOVING LEVER -->
             <!-- ================================= -->
 
             <a-entity
-                id="moving-cover"
+
+                id="moving-lever"
 
                 position="0 0 0.055"
 
-                animation__remove="
+                rotation="0 0 -25"
 
-                    property: position;
+                animation="
 
-                    from: 0 0 0.055;
+                    property: rotation;
 
-                    to: 0 0.25 0.25;
+                    from: 0 0 -25;
 
-                    dur: 1800;
+                    to: 0 0 25;
 
-                    easing: easeInOutQuad;
+                    dur: 1000;
+
+                    easing: easeInOutSine;
 
                     loop: true;
 
                     dir: alternate;
 
                 "
+
             >
 
 
-                <!-- COVER -->
+                <!-- LEVER ARM -->
 
                 <a-box
 
-                    width="0.16"
-                    height="0.11"
-                    depth="0.025"
+                    position="0 0.09 0"
+
+                    width="0.035"
+
+                    height="0.18"
+
+                    depth="0.035"
 
                     color="#777777"
 
@@ -221,22 +220,36 @@
                 </a-box>
 
 
-                <!-- CENTER DETAIL -->
+                <!-- HANDLE -->
 
                 <a-cylinder
 
-                    position="0 0 0.02"
+                    position="0 0.19 0"
 
-                    radius="0.025"
+                    radius="0.035"
 
-                    height="0.01"
+                    height="0.08"
 
                     rotation="90 0 0"
 
-                    color="#aaaaaa"
+                    color="#222222"
 
                 >
                 </a-cylinder>
+
+
+                <!-- HANDLE END -->
+
+                <a-sphere
+
+                    position="0 0.23 0"
+
+                    radius="0.045"
+
+                    color="#333333"
+
+                >
+                </a-sphere>
 
 
             </a-entity>
@@ -267,7 +280,7 @@ target.addEventListener(
     () => {
 
         status.innerText =
-            "3D COMPONENT REMOVAL";
+            "3D REPAIR ACTION ACTIVE";
 
     }
 );
