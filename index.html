@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Repair AR - 3 Step Sequence</title>
+    <title>Remote Repair AR - Isolated Sequential Tasks</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -52,9 +52,9 @@
     <a-entity id="generator-target" mindar-image-target="targetIndex: 0">
 
         <!-- ================================================= -->
-        <!-- TASK 1: FUEL CAP ASSEMBLY (Top-left tank position)-->
+        <!-- TASK 1: FUEL CAP ASSEMBLY (Hidden by default)     -->
         <!-- ================================================= -->
-        <a-entity id="fuel-cap-assembly" position="-0.22 0.38 0.05">
+        <a-entity id="fuel-cap-assembly" position="-0.22 0.38 0.05" visible="false">
             <a-entity id="fuel-cap-pivot" position="0 0 0" rotation="0 0 0">
                 <a-cylinder id="cap-body" position="0 0 0" radius="0.065" height="0.025" color="#ffcc00" metalness="0.8" roughness="0.2"></a-cylinder>
                 <a-cylinder position="0 0.015 0" radius="0.04" height="0.01" color="#222222"></a-cylinder>
@@ -64,24 +64,24 @@
         </a-entity>
 
         <!-- ================================================= -->
-        <!-- TASK 2: LEVER & PIVOT ASSEMBLY (Lower front right)-->
+        <!-- TASK 2: LEVER & PIVOT ASSEMBLY (Hidden by default)-->
         <!-- ================================================= -->
-        <a-entity id="repair-lever" position="0.16 -0.18 0.12" scale="0.8 0.8 0.8">
+        <a-entity id="repair-lever" position="0.16 -0.18 0.12" scale="0.8 0.8 0.8" visible="false">
             <a-box position="0 0 0" width="0.14" height="0.09" depth="0.035" color="#555555"></a-box>
             <a-cylinder position="0 0 0.035" radius="0.035" height="0.045" rotation="90 0 0" color="#aaaaaa"></a-cylinder>
             
             <a-entity id="moving-lever" position="0 0 0.055" rotation="0 0 -25">
-                <a-box id="lever-arm" position="0 0.09 0" width="0.035" height="0.18" depth="0.035" color="#777777"></a-box>
+                <a-box id="lever-arm" position="0 0.09 0" width="0.035" height="0.18" depth="0.035" color="#ffcc00"></a-box>
                 <a-cylinder position="0 0.19 0" radius="0.035" height="0.08" rotation="90 0 0" color="#222222"></a-cylinder>
                 <a-sphere position="0 0.23 0" radius="0.045" color="#333333"></a-sphere>
             </a-entity>
         </a-entity>
 
         <!-- ================================================= -->
-        <!-- TASK 3: SIDE PANEL COVER (Engine right side)     -->
+        <!-- TASK 3: SIDE PANEL COVER (Hidden by default)      -->
         <!-- ================================================= -->
-        <a-entity id="side-panel-cover" position="0.22 0.15 0.08" visible="true">
-            <a-box id="panel-body" width="0.22" height="0.28" depth="0.02" color="#777777" material="transparent: true; opacity: 1"></a-box>
+        <a-entity id="side-panel-cover" position="0.22 0.15 0.08" visible="false">
+            <a-box id="panel-body" width="0.22" height="0.28" depth="0.02" color="#ffcc00" material="transparent: true; opacity: 1"></a-box>
             <a-box position="0 0 0.02" width="0.04" height="0.08" depth="0.02" color="#111111"></a-box>
         </a-entity>
 
@@ -92,11 +92,11 @@
 const target = document.querySelector("#generator-target");
 const status = document.querySelector("#status");
 
+const fuelCapAssembly = document.querySelector("#fuel-cap-assembly");
 const capPivot = document.querySelector("#fuel-cap-pivot");
-const capBody = document.querySelector("#cap-body");
 
+const repairLever = document.querySelector("#repair-lever");
 const movingLever = document.querySelector("#moving-lever");
-const leverArm = document.querySelector("#lever-arm");
 
 const sidePanel = document.querySelector("#side-panel-cover");
 const panelBody = document.querySelector("#panel-body");
@@ -105,12 +105,37 @@ let timer1 = null;
 let timer2 = null;
 let timer3 = null;
 
+function resetAllTasks() {
+    // Hide all entities
+    fuelCapAssembly.setAttribute("visible", "false");
+    repairLever.setAttribute("visible", "false");
+    sidePanel.setAttribute("visible", "false");
+
+    // Reset Task 1 (Fuel Cap)
+    capPivot.removeAttribute("animation__rotate");
+    capPivot.removeAttribute("animation__lift");
+    capPivot.setAttribute("rotation", "0 0 0");
+    capPivot.setAttribute("position", "0 0 0");
+
+    // Reset Task 2 (Lever)
+    movingLever.removeAttribute("animation__pivot");
+    movingLever.setAttribute("rotation", "0 0 -25");
+
+    // Reset Task 3 (Side Panel)
+    sidePanel.removeAttribute("animation__move");
+    panelBody.removeAttribute("animation__fade");
+    sidePanel.setAttribute("position", "0.22 0.15 0.08");
+    panelBody.setAttribute("material", "transparent: true; opacity: 1");
+}
+
 target.addEventListener("targetFound", () => {
+    resetAllTasks();
+
     // =========================================================
-    // TASK 1: HANDLE FUEL CAP (0s - 5s)
+    // TASK 1: UNSCREW FUEL CAP (0s - 5s)
     // =========================================================
     status.innerText = "TASK 1: UNSCREW FUEL CAP (0-5s)";
-    capBody.setAttribute("color", "#ffcc00");
+    fuelCapAssembly.setAttribute("visible", "true");
 
     capPivot.setAttribute("animation__rotate", {
         property: "rotation",
@@ -127,30 +152,32 @@ target.addEventListener("targetFound", () => {
     });
 
     // =========================================================
-    // TASK 2: LEVER & PIVOT ACTION (5s - 10s)
+    // TASK 2: LEVER & PIVOT ACTION (At 5th sec)
     // =========================================================
     timer1 = setTimeout(() => {
+        // Hide Task 1, Show Task 2
+        fuelCapAssembly.setAttribute("visible", "false");
+        repairLever.setAttribute("visible", "true");
         status.innerText = "TASK 2: ACTUATE LEVER & PIVOT (5-10s)";
-        capBody.setAttribute("color", "#d4d4d4");
-        leverArm.setAttribute("color", "#ffcc00");
 
         movingLever.setAttribute("animation__pivot", {
             property: "rotation",
             from: "0 0 -25",
             to: "0 0 35",
-            dur: 1500,
+            dur: 1250,
             easing: "easeInOutSine",
             loop: 2,
             dir: "alternate"
         });
 
         // =========================================================
-        // TASK 3: REMOVE SIDE PANEL COVER (10s - 15s)
+        // TASK 3: REMOVE SIDE PANEL COVER (At 10th sec)
         // =========================================================
         timer2 = setTimeout(() => {
+            // Hide Task 2, Show Task 3
+            repairLever.setAttribute("visible", "false");
+            sidePanel.setAttribute("visible", "true");
             status.innerText = "TASK 3: REMOVE SIDE PANEL COVER (10-15s)";
-            leverArm.setAttribute("color", "#777777");
-            panelBody.setAttribute("color", "#ffcc00");
 
             // Slide side panel outward
             sidePanel.setAttribute("animation__move", {
@@ -168,14 +195,15 @@ target.addEventListener("targetFound", () => {
                 easing: "easeOutQuad"
             });
 
+            // End Sequence
             timer3 = setTimeout(() => {
-                status.innerText = "ALL REPAIR TASKS COMPLETED SUCCESSFULLY!";
                 sidePanel.setAttribute("visible", "false");
+                status.innerText = "ALL REPAIR TASKS COMPLETED SUCCESSFULLY!";
             }, 3000);
 
-        }, 5000); // Trigger Task 3 at t = 10s
+        }, 5000); // 10th second trigger
 
-    }, 5000); // Trigger Task 2 at t = 5s
+    }, 5000); // 5th second trigger
 });
 
 target.addEventListener("targetLost", () => {
@@ -186,25 +214,7 @@ target.addEventListener("targetLost", () => {
     if (timer2) clearTimeout(timer2);
     if (timer3) clearTimeout(timer3);
 
-    // Reset Task 1 (Fuel Cap)
-    capPivot.removeAttribute("animation__rotate");
-    capPivot.removeAttribute("animation__lift");
-    capPivot.setAttribute("rotation", "0 0 0");
-    capPivot.setAttribute("position", "0 0 0");
-    capBody.setAttribute("color", "#d4d4d4");
-
-    // Reset Task 2 (Lever)
-    movingLever.removeAttribute("animation__pivot");
-    movingLever.setAttribute("rotation", "0 0 -25");
-    leverArm.setAttribute("color", "#777777");
-
-    // Reset Task 3 (Side Panel Cover)
-    sidePanel.removeAttribute("animation__move");
-    panelBody.removeAttribute("animation__fade");
-    sidePanel.setAttribute("position", "0.22 0.15 0.08");
-    sidePanel.setAttribute("visible", "true");
-    panelBody.setAttribute("color", "#777777");
-    panelBody.setAttribute("material", "transparent: true; opacity: 1");
+    resetAllTasks();
 });
 </script>
 
