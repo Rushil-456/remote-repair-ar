@@ -1,305 +1,366 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta charset="UTF-8">
+  <title>3D Repair AR</title>
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-    <title>Remote Repair AR</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
 
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    #status {
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
 
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+      background: rgba(0,0,0,0.7);
+      color: white;
 
-    <style>
+      padding: 10px 18px;
+      border-radius: 10px;
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        #status {
-
-            position: fixed;
-
-            top: 20px;
-            left: 0;
-
-            width: 100%;
-
-            text-align: center;
-
-            color: white;
-
-            font-family: Arial, sans-serif;
-
-            font-size: 20px;
-
-            font-weight: bold;
-
-            text-shadow: 0 2px 5px black;
-
-            z-index: 100;
-
-        }
-
-    </style>
-
+      font-family: Arial;
+      font-size: 15px;
+    }
+  </style>
 </head>
-
 
 <body>
 
-
-<div id="status">
-
-    Point camera at generator
-
-</div>
-
+<div id="status">SCAN GENERATOR</div>
 
 <a-scene
-
-    mindar-image="
-        imageTargetSrc: ./targets.mind;
-        maxTrack: 1;
-    "
-
-    vr-mode-ui="enabled: false"
-
-    device-orientation-permission-ui="enabled: false"
-
-    renderer="
-        colorManagement: true;
-    "
-
+  mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1;"
+  embedded
+  color-space="sRGB"
+  renderer="colorManagement: true; physicallyCorrectLights: true;"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false"
 >
 
-
-    <!-- CAMERA -->
-
-    <a-camera
-        position="0 0 0"
-        look-controls="enabled: false">
-    </a-camera>
+  <a-camera
+    position="0 0 0"
+    look-controls="enabled: false">
+  </a-camera>
 
 
-    <!-- LIGHTING -->
-
-    <a-light
-        type="ambient"
-        color="#ffffff"
-        intensity="2">
-    </a-light>
+  <!-- GENERATOR IMAGE TARGET -->
+  <a-entity
+    id="generator-target"
+    mindar-image-target="targetIndex: 0">
 
 
-    <a-light
-        type="directional"
-        position="1 2 2"
-        intensity="2">
-    </a-light>
-
-
-    <!-- ================================= -->
-    <!-- GENERATOR IMAGE TARGET -->
-    <!-- ================================= -->
+    <!-- ================================================= -->
+    <!-- ACTION 1 : MOVING LEVER -->
+    <!-- ================================================= -->
 
     <a-entity
-        id="generator-target"
-        mindar-image-target="targetIndex: 0">
-
-
-        <!-- ================================= -->
-        <!-- 3D LEVER ASSEMBLY -->
-        <!-- ================================= -->
-
-        <a-entity
-
-            id="repair-lever"
-
-            position="0.16 -0.18 0.12"
-
-            scale="0.8 0.8 0.8"
-
-        >
-
-
-            <!-- ================================= -->
-            <!-- MOUNTING BASE -->
-            <!-- ================================= -->
-
-            <a-box
-
-                position="0 0 0"
-
-                width="0.14"
-                height="0.09"
-                depth="0.035"
-
-                color="#555555"
-
-            >
-            </a-box>
-
-
-            <!-- ================================= -->
-            <!-- PIVOT CYLINDER -->
-            <!-- ================================= -->
-
-            <a-cylinder
-
-                position="0 0 0.035"
-
-                radius="0.035"
-
-                height="0.045"
-
-                rotation="90 0 0"
-
-                color="#aaaaaa"
-
-            >
-            </a-cylinder>
-
-
-            <!-- ================================= -->
-            <!-- MOVING LEVER -->
-            <!-- ================================= -->
-
-            <a-entity
-
-                id="moving-lever"
-
-                position="0 0 0.055"
-
-                rotation="0 0 -25"
-
-                animation="
-
-                    property: rotation;
-
-                    from: 0 0 -25;
-
-                    to: 0 0 25;
-
-                    dur: 1000;
-
-                    easing: easeInOutSine;
-
-                    loop: true;
-
-                    dir: alternate;
-
-                "
-
-            >
-
-
-                <!-- LEVER ARM -->
-
-                <a-box
-
-                    position="0 0.09 0"
-
-                    width="0.035"
-
-                    height="0.18"
-
-                    depth="0.035"
-
-                    color="#777777"
-
-                >
-                </a-box>
-
-
-                <!-- HANDLE -->
-
-                <a-cylinder
-
-                    position="0 0.19 0"
-
-                    radius="0.035"
-
-                    height="0.08"
-
-                    rotation="90 0 0"
-
-                    color="#222222"
-
-                >
-                </a-cylinder>
-
-
-                <!-- HANDLE END -->
-
-                <a-sphere
-
-                    position="0 0.23 0"
-
-                    radius="0.045"
-
-                    color="#333333"
-
-                >
-                </a-sphere>
-
-
-            </a-entity>
-
-
-        </a-entity>
-
+      id="repair-lever"
+      position="0.16 -0.18 0.12"
+      scale="0.8 0.8 0.8">
+
+      <!-- mounting base -->
+      <a-box
+        position="0 0 0"
+        width="0.20"
+        height="0.08"
+        depth="0.05">
+      </a-box>
+
+      <!-- pivot -->
+      <a-cylinder
+        position="0 0 0.04"
+        radius="0.035"
+        height="0.06"
+        rotation="90 0 0">
+      </a-cylinder>
+
+      <!-- moving lever -->
+      <a-entity
+        id="moving-lever"
+        position="0 0 0.05"
+        rotation="0 0 -25">
+
+        <!-- lever arm -->
+        <a-box
+          position="0 0.10 0"
+          width="0.035"
+          height="0.20"
+          depth="0.035">
+        </a-box>
+
+        <!-- handle -->
+        <a-cylinder
+          position="0 0.21 0"
+          radius="0.045"
+          height="0.08"
+          rotation="90 0 0">
+        </a-cylinder>
+
+        <!-- handle end -->
+        <a-sphere
+          position="0 0.25 0"
+          radius="0.045">
+        </a-sphere>
+
+      </a-entity>
 
     </a-entity>
 
+
+    <!-- ================================================= -->
+    <!-- ACTION 2 : REMOVABLE COMPONENT -->
+    <!-- ================================================= -->
+
+    <a-entity
+      id="removable-component"
+      position="0.20 -0.18 0.12">
+
+      <!-- mounting plate -->
+      <a-box
+        position="0 0 0"
+        width="0.28"
+        height="0.20"
+        depth="0.035">
+      </a-box>
+
+      <!-- component being removed -->
+      <a-box
+        id="old-component"
+        position="0 0 0.045"
+        width="0.22"
+        height="0.14"
+        depth="0.07">
+
+      </a-box>
+
+      <!-- bolts -->
+      <a-cylinder
+        position="-0.10 0.07 0.09"
+        radius="0.015"
+        height="0.015"
+        rotation="90 0 0">
+      </a-cylinder>
+
+      <a-cylinder
+        position="0.10 0.07 0.09"
+        radius="0.015"
+        height="0.015"
+        rotation="90 0 0">
+      </a-cylinder>
+
+      <a-cylinder
+        position="-0.10 -0.07 0.09"
+        radius="0.015"
+        height="0.015"
+        rotation="90 0 0">
+      </a-cylinder>
+
+      <a-cylinder
+        position="0.10 -0.07 0.09"
+        radius="0.015"
+        height="0.015"
+        rotation="90 0 0">
+      </a-cylinder>
+
+    </a-entity>
+
+
+    <!-- ================================================= -->
+    <!-- ACTION 3 : NEW COMPONENT -->
+    <!-- ================================================= -->
+
+    <a-box
+      id="new-component"
+      position="0.20 0.15 0.25"
+      width="0.22"
+      height="0.14"
+      depth="0.07"
+      visible="false">
+    </a-box>
+
+
+  </a-entity>
 
 </a-scene>
 
 
 <script>
 
+const target = document.querySelector("#generator-target");
+const status = document.querySelector("#status");
 
-const target =
-    document.querySelector("#generator-target");
+const lever = document.querySelector("#moving-lever");
+const oldComponent = document.querySelector("#old-component");
+const newComponent = document.querySelector("#new-component");
+
+let currentAction = 0;
 
 
-const status =
-    document.querySelector("#status");
+// =====================================================
+// TARGET FOUND
+// =====================================================
+
+target.addEventListener("targetFound", () => {
+
+  status.innerText = "3D REPAIR STARTING";
+
+  // Start first action
+  setTimeout(() => {
+    startAction1();
+  }, 1000);
+
+});
 
 
-target.addEventListener(
-    "targetFound",
-    () => {
+// =====================================================
+// ACTION 1
+// MOVE LEVER
+// =====================================================
 
-        status.innerText =
-            "3D REPAIR ACTION ACTIVE";
+function startAction1() {
 
+  currentAction = 1;
+
+  status.innerText = "ACTION 1 : MOVE";
+
+  lever.setAttribute(
+    "animation__action1",
+    {
+      property: "rotation",
+      from: "0 0 -25",
+      to: "0 0 25",
+      dur: 1200,
+      easing: "easeInOutSine"
     }
+  );
+
+  // Run the animation
+  lever.emit("action1");
+
+}
+
+
+// =====================================================
+// ACTION 1 COMPLETE
+// =====================================================
+
+lever.addEventListener(
+  "animationcomplete__action1",
+  () => {
+
+    // Small pause before next action
+    setTimeout(() => {
+      startAction2();
+    }, 800);
+
+  }
 );
 
 
-target.addEventListener(
-    "targetLost",
-    () => {
+// =====================================================
+// ACTION 2
+// REMOVE COMPONENT
+// =====================================================
 
-        status.innerText =
-            "Point camera at generator";
+function startAction2() {
 
+  currentAction = 2;
+
+  status.innerText = "ACTION 2 : REMOVE";
+
+  oldComponent.setAttribute(
+    "animation__action2",
+    {
+      property: "position",
+      from: "0 0 0.045",
+      to: "0 0.25 0.30",
+      dur: 1500,
+      easing: "easeInOutSine"
     }
+  );
+
+  oldComponent.emit("action2");
+
+}
+
+
+// =====================================================
+// ACTION 2 COMPLETE
+// =====================================================
+
+oldComponent.addEventListener(
+  "animationcomplete__action2",
+  () => {
+
+    setTimeout(() => {
+      startAction3();
+    }, 800);
+
+  }
 );
 
+
+// =====================================================
+// ACTION 3
+// INSERT NEW COMPONENT
+// =====================================================
+
+function startAction3() {
+
+  currentAction = 3;
+
+  status.innerText = "ACTION 3 : INSERT";
+
+  // Show replacement
+  newComponent.setAttribute("visible", true);
+
+  // Starting position
+  newComponent.setAttribute(
+    "position",
+    "0.20 0.15 0.25"
+  );
+
+  // Animate replacement into position
+  newComponent.setAttribute(
+    "animation__action3",
+    {
+      property: "position",
+      from: "0.20 0.15 0.25",
+      to: "0.20 -0.18 0.165",
+      dur: 1500,
+      easing: "easeInOutSine"
+    }
+  );
+
+  newComponent.emit("action3");
+
+}
+
+
+// =====================================================
+// ACTION 3 COMPLETE
+// =====================================================
+
+newComponent.addEventListener(
+  "animationcomplete__action3",
+  () => {
+
+    status.innerText = "REPAIR COMPLETE";
+
+  }
+);
 
 </script>
 
-
 </body>
-
 </html>
