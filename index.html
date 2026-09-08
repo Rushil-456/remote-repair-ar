@@ -1,43 +1,75 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Remote Repair AR</title>
+
+    <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <!-- MindAR -->
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
         body {
             margin: 0;
             overflow: hidden;
+            background: black;
         }
 
-        .title {
+        #status {
             position: fixed;
             top: 20px;
             left: 0;
             width: 100%;
             text-align: center;
+
             color: white;
-            z-index: 10;
-            font-family: Arial;
-            font-size: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+
             text-shadow: 0 2px 5px black;
+
+            z-index: 10;
         }
     </style>
 </head>
 
+
 <body>
 
-<div class="title">
-    Remote Repair AR
+<div id="status">
+    Point camera at the generator
 </div>
 
+
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind;"
+
+    mindar-image="
+        imageTargetSrc: ./targets.mind;
+        maxTrack: 1;
+        filterMinCF: 0.0001;
+        filterBeta: 0.001;
+    "
+
     vr-mode-ui="enabled: false"
+
     device-orientation-permission-ui="enabled: false"
+
+    renderer="
+        colorManagement: true;
+        physicallyCorrectLights;
+    "
+
 >
+
+
+    <!-- CAMERA -->
 
     <a-camera
         position="0 0 0"
@@ -45,24 +77,154 @@
     </a-camera>
 
 
-    <!-- Generator image target -->
+    <!-- GENERATOR TARGET -->
 
     <a-entity
         id="generator-target"
         mindar-image-target="targetIndex: 0">
 
-        <!-- AR overlay -->
-        <a-plane
-            color="red"
-            opacity="0.5"
-            position="0 0 0.01"
-            width="0.25"
-            height="0.15">
-        </a-plane>
+
+        <!-- ================================= -->
+        <!-- FUEL CAP ROTATION AR -->
+        <!-- ================================= -->
+
+        <a-entity
+            id="fuel-cap-ar"
+
+            position="-0.16 0.33 0.05"
+        >
+
+            <!-- Rotating ring -->
+
+            <a-ring
+
+                radius-inner="0.055"
+                radius-outer="0.075"
+
+                color="#00ff66"
+
+                opacity="0.9"
+
+                animation="
+                    property: rotation;
+                    from: 0 0 0;
+                    to: 0 0 360;
+                    dur: 1800;
+                    easing: linear;
+                    loop: true;
+                "
+
+            >
+            </a-ring>
+
+
+            <!-- Rotation symbol -->
+
+            <a-text
+
+                value="↻"
+
+                align="center"
+
+                color="#00ff66"
+
+                width="0.35"
+
+                position="0 0 0.01"
+
+            >
+            </a-text>
+
+        </a-entity>
+
 
     </a-entity>
 
+
 </a-scene>
 
+
+<script>
+
+const target = document.querySelector("#generator-target");
+const status = document.querySelector("#status");
+
+
+// Generator detected
+
+target.addEventListener("targetFound", () => {
+
+    status.innerText = "ROTATE THIS PART ↻";
+
+});
+
+
+// Generator lost
+
+target.addEventListener("targetLost", () => {
+
+    status.innerText = "Point camera at the generator";
+
+});
+
+
+/*
+    Request high-resolution camera
+*/
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    try {
+
+        const video = document.querySelector("video");
+
+        if (!video) return;
+
+        const stream = video.srcObject;
+
+        if (!stream) return;
+
+        const track = stream.getVideoTracks()[0];
+
+        if (!track) return;
+
+
+        await track.applyConstraints({
+
+            width: {
+                ideal: 1920
+            },
+
+            height: {
+                ideal: 1080
+            },
+
+            frameRate: {
+                ideal: 30
+            }
+
+        });
+
+
+        console.log(
+            "Camera settings:",
+            track.getSettings()
+        );
+
+    } catch (error) {
+
+        console.log(
+            "Could not force 1080p:",
+            error
+        );
+
+    }
+
+});
+
+</script>
+
+
 </body>
+
 </html>
