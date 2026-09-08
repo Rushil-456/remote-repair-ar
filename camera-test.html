@@ -1,27 +1,99 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Quality Test</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            color: white;
+            font-family: Arial;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        #info {
+            padding: 15px;
+        }
+    </style>
+</head>
+
 <body>
 
-<h2>Camera Test</h2>
+<h2>Camera Quality Test</h2>
 
-<video id="video" autoplay playsinline
-       style="width:100%;"></video>
+<video id="camera" autoplay playsinline></video>
+
+<div id="info">
+    Starting camera...
+</div>
 
 <script>
-navigator.mediaDevices.getUserMedia({
-    video: {
-        facingMode: "environment"
-    },
-    audio: false
-})
-.then(stream => {
-    document.getElementById("video").srcObject = stream;
-})
-.catch(error => {
-    document.body.innerHTML +=
-        "<p>Camera error: " + error.name + "</p>" +
-        "<p>" + error.message + "</p>";
-});
+
+async function startCamera() {
+
+    try {
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+
+            video: {
+                facingMode: {
+                    ideal: "environment"
+                },
+
+                width: {
+                    ideal: 1920
+                },
+
+                height: {
+                    ideal: 1080
+                },
+
+                frameRate: {
+                    ideal: 30
+                }
+            },
+
+            audio: false
+
+        });
+
+        const video = document.getElementById("camera");
+
+        video.srcObject = stream;
+
+        const track = stream.getVideoTracks()[0];
+
+        const settings = track.getSettings();
+
+        document.getElementById("info").innerHTML =
+            "Camera resolution: " +
+            settings.width + " × " +
+            settings.height +
+            "<br>Frame rate: " +
+            settings.frameRate;
+
+    }
+
+    catch (error) {
+
+        document.getElementById("info").innerHTML =
+            "Camera error: " + error.message;
+
+        console.error(error);
+
+    }
+
+}
+
+startCamera();
+
 </script>
 
 </body>
