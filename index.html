@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Repair AR</title>
+    <title>Remote Repair AR - 3 Step Sequence</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -44,34 +44,44 @@
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <a-light type="ambient" color="#ffffff" intensity="2"></a-light>
-    <a-light type="directional" position="1 2 2" intensity="2"></a-light>
+    <!-- LIGHTING -->
+    <a-light type="ambient" color="#ffffff" intensity="1.8"></a-light>
+    <a-light type="directional" position="1 2 2" intensity="1.5"></a-light>
 
     <!-- GENERATOR IMAGE TARGET -->
     <a-entity id="generator-target" mindar-image-target="targetIndex: 0">
 
-        <!-- 3D LEVER ASSEMBLY -->
+        <!-- ================================================= -->
+        <!-- TASK 1: FUEL CAP ASSEMBLY (Top-left tank position)-->
+        <!-- ================================================= -->
+        <a-entity id="fuel-cap-assembly" position="-0.22 0.38 0.05">
+            <a-entity id="fuel-cap-pivot" position="0 0 0" rotation="0 0 0">
+                <a-cylinder id="cap-body" position="0 0 0" radius="0.065" height="0.025" color="#ffcc00" metalness="0.8" roughness="0.2"></a-cylinder>
+                <a-cylinder position="0 0.015 0" radius="0.04" height="0.01" color="#222222"></a-cylinder>
+                <a-cylinder position="0 -0.02 0" radius="0.048" height="0.02" color="#888888"></a-cylinder>
+            </a-entity>
+            <a-ring position="0 -0.01 0" rotation="-90 0 0" radius-inner="0.045" radius-outer="0.07" color="#111111"></a-ring>
+        </a-entity>
+
+        <!-- ================================================= -->
+        <!-- TASK 2: LEVER & PIVOT ASSEMBLY (Lower front right)-->
+        <!-- ================================================= -->
         <a-entity id="repair-lever" position="0.16 -0.18 0.12" scale="0.8 0.8 0.8">
-            <!-- MOUNTING BASE -->
             <a-box position="0 0 0" width="0.14" height="0.09" depth="0.035" color="#555555"></a-box>
-
-            <!-- PIVOT CYLINDER -->
             <a-cylinder position="0 0 0.035" radius="0.035" height="0.045" rotation="90 0 0" color="#aaaaaa"></a-cylinder>
-
-            <!-- MOVING LEVER -->
-            <a-entity id="moving-lever" position="0 0 0.055" rotation="0 0 -25"
-                animation="property: rotation; from: 0 0 -25; to: 0 0 25; dur: 1000; easing: easeInOutSine; loop: true; dir: alternate;">
-                <a-box position="0 0.09 0" width="0.035" height="0.18" depth="0.035" color="#777777"></a-box>
+            
+            <a-entity id="moving-lever" position="0 0 0.055" rotation="0 0 -25">
+                <a-box id="lever-arm" position="0 0.09 0" width="0.035" height="0.18" depth="0.035" color="#777777"></a-box>
                 <a-cylinder position="0 0.19 0" radius="0.035" height="0.08" rotation="90 0 0" color="#222222"></a-cylinder>
                 <a-sphere position="0 0.23 0" radius="0.045" color="#333333"></a-sphere>
             </a-entity>
         </a-entity>
 
-        <!-- NEW TASK FEATURE: PROTECTIVE COVER PANEL TO BE REMOVED -->
-        <a-entity id="cover-panel" position="-0.15 0 0.05" visible="true">
-            <!-- Main Cover Box -->
-            <a-box width="0.2" height="0.2" depth="0.02" color="#cc3333" material="transparent: true; opacity: 1"></a-box>
-            <!-- Handle on Cover -->
+        <!-- ================================================= -->
+        <!-- TASK 3: SIDE PANEL COVER (Engine right side)     -->
+        <!-- ================================================= -->
+        <a-entity id="side-panel-cover" position="0.22 0.15 0.08" visible="true">
+            <a-box id="panel-body" width="0.22" height="0.28" depth="0.02" color="#777777" material="transparent: true; opacity: 1"></a-box>
             <a-box position="0 0 0.02" width="0.04" height="0.08" depth="0.02" color="#111111"></a-box>
         </a-entity>
 
@@ -81,60 +91,120 @@
 <script>
 const target = document.querySelector("#generator-target");
 const status = document.querySelector("#status");
-const coverPanel = document.querySelector("#cover-panel");
 
-let taskTimer = null;
+const capPivot = document.querySelector("#fuel-cap-pivot");
+const capBody = document.querySelector("#cap-body");
+
+const movingLever = document.querySelector("#moving-lever");
+const leverArm = document.querySelector("#lever-arm");
+
+const sidePanel = document.querySelector("#side-panel-cover");
+const panelBody = document.querySelector("#panel-body");
+
+let timer1 = null;
+let timer2 = null;
+let timer3 = null;
 
 target.addEventListener("targetFound", () => {
-    status.innerText = "3D REPAIR ACTION ACTIVE";
+    // =========================================================
+    // TASK 1: HANDLE FUEL CAP (0s - 5s)
+    // =========================================================
+    status.innerText = "TASK 1: UNSCREW FUEL CAP (0-5s)";
+    capBody.setAttribute("color", "#ffcc00");
 
-    // Trigger removal task after 5 seconds
-    taskTimer = setTimeout(() => {
-        status.innerText = "TASK 2: REMOVING PROTECTIVE COVER";
+    capPivot.setAttribute("animation__rotate", {
+        property: "rotation",
+        to: "0 -720 0",
+        dur: 3000,
+        easing: "easeInOutQuad"
+    });
 
-        // 1. Animate cover moving outward away from generator
-        coverPanel.setAttribute("animation__move", {
-            property: "position",
-            to: "-0.15 0 0.35",
+    capPivot.setAttribute("animation__lift", {
+        property: "position",
+        to: "0 0.20 0",
+        dur: 3000,
+        easing: "easeInOutQuad"
+    });
+
+    // =========================================================
+    // TASK 2: LEVER & PIVOT ACTION (5s - 10s)
+    // =========================================================
+    timer1 = setTimeout(() => {
+        status.innerText = "TASK 2: ACTUATE LEVER & PIVOT (5-10s)";
+        capBody.setAttribute("color", "#d4d4d4");
+        leverArm.setAttribute("color", "#ffcc00");
+
+        movingLever.setAttribute("animation__pivot", {
+            property: "rotation",
+            from: "0 0 -25",
+            to: "0 0 35",
             dur: 1500,
-            easing: "easeOutQuad"
+            easing: "easeInOutSine",
+            loop: 2,
+            dir: "alternate"
         });
 
-        // 2. Animate cover fading out
-        const mainBox = coverPanel.querySelector("a-box");
-        mainBox.setAttribute("animation__fade", {
-            property: "components.material.material.opacity",
-            to: 0,
-            dur: 1500,
-            easing: "easeOutQuad"
-        });
+        // =========================================================
+        // TASK 3: REMOVE SIDE PANEL COVER (10s - 15s)
+        // =========================================================
+        timer2 = setTimeout(() => {
+            status.innerText = "TASK 3: REMOVE SIDE PANEL COVER (10-15s)";
+            leverArm.setAttribute("color", "#777777");
+            panelBody.setAttribute("color", "#ffcc00");
 
-        // 3. Hide entity completely after animations finish
-        setTimeout(() => {
-            coverPanel.setAttribute("visible", "false");
-            status.innerText = "COVER REMOVED SUCCESSFULLY";
-        }, 1500);
+            // Slide side panel outward
+            sidePanel.setAttribute("animation__move", {
+                property: "position",
+                to: "0.22 0.15 0.40",
+                dur: 3000,
+                easing: "easeOutQuad"
+            });
 
-    }, 5000);
+            // Fade panel transparency out
+            panelBody.setAttribute("animation__fade", {
+                property: "components.material.material.opacity",
+                to: 0,
+                dur: 3000,
+                easing: "easeOutQuad"
+            });
+
+            timer3 = setTimeout(() => {
+                status.innerText = "ALL REPAIR TASKS COMPLETED SUCCESSFULLY!";
+                sidePanel.setAttribute("visible", "false");
+            }, 3000);
+
+        }, 5000); // Trigger Task 3 at t = 10s
+
+    }, 5000); // Trigger Task 2 at t = 5s
 });
 
 target.addEventListener("targetLost", () => {
     status.innerText = "Point camera at generator";
 
-    // Clear active timer if tracking is lost early
-    if (taskTimer) {
-        clearTimeout(taskTimer);
-        taskTimer = null;
-    }
+    // Clear active sequence timers
+    if (timer1) clearTimeout(timer1);
+    if (timer2) clearTimeout(timer2);
+    if (timer3) clearTimeout(timer3);
 
-    // Reset cover panel position and visibility for next detection
-    coverPanel.removeAttribute("animation__move");
-    coverPanel.setAttribute("position", "-0.15 0 0.05");
-    coverPanel.setAttribute("visible", "true");
+    // Reset Task 1 (Fuel Cap)
+    capPivot.removeAttribute("animation__rotate");
+    capPivot.removeAttribute("animation__lift");
+    capPivot.setAttribute("rotation", "0 0 0");
+    capPivot.setAttribute("position", "0 0 0");
+    capBody.setAttribute("color", "#d4d4d4");
 
-    const mainBox = coverPanel.querySelector("a-box");
-    mainBox.removeAttribute("animation__fade");
-    mainBox.setAttribute("material", "transparent: true; opacity: 1");
+    // Reset Task 2 (Lever)
+    movingLever.removeAttribute("animation__pivot");
+    movingLever.setAttribute("rotation", "0 0 -25");
+    leverArm.setAttribute("color", "#777777");
+
+    // Reset Task 3 (Side Panel Cover)
+    sidePanel.removeAttribute("animation__move");
+    panelBody.removeAttribute("animation__fade");
+    sidePanel.setAttribute("position", "0.22 0.15 0.08");
+    sidePanel.setAttribute("visible", "true");
+    panelBody.setAttribute("color", "#777777");
+    panelBody.setAttribute("material", "transparent: true; opacity: 1");
 });
 </script>
 
