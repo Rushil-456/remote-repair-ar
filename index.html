@@ -2,11 +2,13 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-  <title>3D Repair AR</title>
+  <title>Generator AR</title>
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
@@ -20,32 +22,43 @@
       top: 15px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 10;
+      z-index: 999;
 
-      background: rgba(0,0,0,0.7);
+      padding: 10px 15px;
+
+      background: rgba(0,0,0,0.75);
       color: white;
 
-      padding: 10px 18px;
-      border-radius: 10px;
-
       font-family: Arial;
-      font-size: 15px;
+      font-size: 14px;
+
+      border-radius: 8px;
     }
   </style>
 </head>
 
 <body>
 
-<div id="status">SCAN GENERATOR</div>
+<div id="status">POINT CAMERA AT GENERATOR</div>
 
 <a-scene
-  mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1;"
   embedded
-  color-space="sRGB"
-  renderer="colorManagement: true; physicallyCorrectLights: true;"
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: false"
+
+  mindar-image="
+    imageTargetSrc: ./targets.mind;
+    maxTrack: 1;
+  "
+
+  renderer="
+    colorManagement: true;
+    physicallyCorrectLights: true;
+  "
 >
+
+
+  <!-- CAMERA -->
 
   <a-camera
     position="0 0 0"
@@ -53,52 +66,75 @@
   </a-camera>
 
 
-  <!-- GENERATOR IMAGE TARGET -->
+  <!-- LIGHTING -->
+
+  <a-light
+    type="ambient"
+    intensity="2">
+  </a-light>
+
+  <a-light
+    type="directional"
+    position="1 2 1"
+    intensity="2">
+  </a-light>
+
+
+  <!-- IMAGE TARGET -->
+
   <a-entity
-    id="generator-target"
+    id="target"
     mindar-image-target="targetIndex: 0">
 
 
-    <!-- ================================================= -->
-    <!-- ACTION 1 : MOVING LEVER -->
-    <!-- ================================================= -->
+    <!-- ================================= -->
+    <!-- 3D LEVER -->
+    <!-- ================================= -->
 
     <a-entity
-      id="repair-lever"
+      id="leverAssembly"
       position="0.16 -0.18 0.12"
       scale="0.8 0.8 0.8">
 
-      <!-- mounting base -->
+
+      <!-- BASE -->
+
       <a-box
         position="0 0 0"
-        width="0.20"
+        width="0.22"
         height="0.08"
-        depth="0.05">
+        depth="0.06">
       </a-box>
 
-      <!-- pivot -->
+
+      <!-- PIVOT -->
+
       <a-cylinder
         position="0 0 0.04"
-        radius="0.035"
-        height="0.06"
+        radius="0.04"
+        height="0.07"
         rotation="90 0 0">
       </a-cylinder>
 
-      <!-- moving lever -->
-      <a-entity
-        id="moving-lever"
-        position="0 0 0.05"
-        rotation="0 0 -25">
 
-        <!-- lever arm -->
+      <!-- MOVING PART -->
+
+      <a-entity
+        id="lever">
+
+
+        <!-- LEVER ARM -->
+
         <a-box
           position="0 0.10 0"
-          width="0.035"
+          width="0.04"
           height="0.20"
-          depth="0.035">
+          depth="0.04">
         </a-box>
 
-        <!-- handle -->
+
+        <!-- HANDLE -->
+
         <a-cylinder
           position="0 0.21 0"
           radius="0.045"
@@ -106,88 +142,18 @@
           rotation="90 0 0">
         </a-cylinder>
 
-        <!-- handle end -->
+
+        <!-- END -->
+
         <a-sphere
           position="0 0.25 0"
           radius="0.045">
         </a-sphere>
 
+
       </a-entity>
 
     </a-entity>
-
-
-    <!-- ================================================= -->
-    <!-- ACTION 2 : REMOVABLE COMPONENT -->
-    <!-- ================================================= -->
-
-    <a-entity
-      id="removable-component"
-      position="0.20 -0.18 0.12">
-
-      <!-- mounting plate -->
-      <a-box
-        position="0 0 0"
-        width="0.28"
-        height="0.20"
-        depth="0.035">
-      </a-box>
-
-      <!-- component being removed -->
-      <a-box
-        id="old-component"
-        position="0 0 0.045"
-        width="0.22"
-        height="0.14"
-        depth="0.07">
-
-      </a-box>
-
-      <!-- bolts -->
-      <a-cylinder
-        position="-0.10 0.07 0.09"
-        radius="0.015"
-        height="0.015"
-        rotation="90 0 0">
-      </a-cylinder>
-
-      <a-cylinder
-        position="0.10 0.07 0.09"
-        radius="0.015"
-        height="0.015"
-        rotation="90 0 0">
-      </a-cylinder>
-
-      <a-cylinder
-        position="-0.10 -0.07 0.09"
-        radius="0.015"
-        height="0.015"
-        rotation="90 0 0">
-      </a-cylinder>
-
-      <a-cylinder
-        position="0.10 -0.07 0.09"
-        radius="0.015"
-        height="0.015"
-        rotation="90 0 0">
-      </a-cylinder>
-
-    </a-entity>
-
-
-    <!-- ================================================= -->
-    <!-- ACTION 3 : NEW COMPONENT -->
-    <!-- ================================================= -->
-
-    <a-box
-      id="new-component"
-      position="0.20 0.15 0.25"
-      width="0.22"
-      height="0.14"
-      depth="0.07"
-      visible="false">
-    </a-box>
-
 
   </a-entity>
 
@@ -196,169 +162,101 @@
 
 <script>
 
-const target = document.querySelector("#generator-target");
+const target = document.querySelector("#target");
+
+const lever = document.querySelector("#lever");
+
 const status = document.querySelector("#status");
 
-const lever = document.querySelector("#moving-lever");
-const oldComponent = document.querySelector("#old-component");
-const newComponent = document.querySelector("#new-component");
 
-let currentAction = 0;
+// ========================================
+// GENERATOR DETECTED
+// ========================================
+
+target.addEventListener("targetFound", function () {
+
+  console.log("GENERATOR DETECTED");
+
+  status.innerText = "3D REPAIR ACTION";
 
 
-// =====================================================
-// TARGET FOUND
-// =====================================================
+  // Reset lever
 
-target.addEventListener("targetFound", () => {
+  lever.setAttribute(
+    "rotation",
+    "0 0 -30"
+  );
 
-  status.innerText = "3D REPAIR STARTING";
 
-  // Start first action
-  setTimeout(() => {
-    startAction1();
+  // Wait one second
+
+  setTimeout(function () {
+
+    moveLever();
+
   }, 1000);
 
 });
 
 
-// =====================================================
-// ACTION 1
+// ========================================
 // MOVE LEVER
-// =====================================================
+// ========================================
 
-function startAction1() {
+function moveLever() {
 
-  currentAction = 1;
+  console.log("MOVING LEVER");
 
-  status.innerText = "ACTION 1 : MOVE";
+  status.innerText = "MOVING 3D COMPONENT";
+
 
   lever.setAttribute(
-    "animation__action1",
+    "animation",
     {
       property: "rotation",
-      from: "0 0 -25",
-      to: "0 0 25",
-      dur: 1200,
-      easing: "easeInOutSine"
+
+      from: "0 0 -30",
+
+      to: "0 0 30",
+
+      dur: 1500,
+
+      easing: "easeInOutSine",
+
+      loop: false
     }
   );
-
-  // Run the animation
-  lever.emit("action1");
 
 }
 
 
-// =====================================================
-// ACTION 1 COMPLETE
-// =====================================================
+// ========================================
+// ANIMATION FINISHED
+// ========================================
 
 lever.addEventListener(
-  "animationcomplete__action1",
-  () => {
+  "animationcomplete",
+  function () {
 
-    // Small pause before next action
-    setTimeout(() => {
-      startAction2();
-    }, 800);
+    console.log("LEVER ACTION COMPLETE");
 
-  }
-);
-
-
-// =====================================================
-// ACTION 2
-// REMOVE COMPONENT
-// =====================================================
-
-function startAction2() {
-
-  currentAction = 2;
-
-  status.innerText = "ACTION 2 : REMOVE";
-
-  oldComponent.setAttribute(
-    "animation__action2",
-    {
-      property: "position",
-      from: "0 0 0.045",
-      to: "0 0.25 0.30",
-      dur: 1500,
-      easing: "easeInOutSine"
-    }
-  );
-
-  oldComponent.emit("action2");
-
-}
-
-
-// =====================================================
-// ACTION 2 COMPLETE
-// =====================================================
-
-oldComponent.addEventListener(
-  "animationcomplete__action2",
-  () => {
-
-    setTimeout(() => {
-      startAction3();
-    }, 800);
+    status.innerText = "ACTION COMPLETE";
 
   }
 );
 
 
-// =====================================================
-// ACTION 3
-// INSERT NEW COMPONENT
-// =====================================================
+// ========================================
+// TARGET LOST
+// ========================================
 
-function startAction3() {
+target.addEventListener("targetLost", function () {
 
-  currentAction = 3;
+  console.log("GENERATOR LOST");
 
-  status.innerText = "ACTION 3 : INSERT";
+  status.innerText = "POINT CAMERA AT GENERATOR";
 
-  // Show replacement
-  newComponent.setAttribute("visible", true);
-
-  // Starting position
-  newComponent.setAttribute(
-    "position",
-    "0.20 0.15 0.25"
-  );
-
-  // Animate replacement into position
-  newComponent.setAttribute(
-    "animation__action3",
-    {
-      property: "position",
-      from: "0.20 0.15 0.25",
-      to: "0.20 -0.18 0.165",
-      dur: 1500,
-      easing: "easeInOutSine"
-    }
-  );
-
-  newComponent.emit("action3");
-
-}
-
-
-// =====================================================
-// ACTION 3 COMPLETE
-// =====================================================
-
-newComponent.addEventListener(
-  "animationcomplete__action3",
-  () => {
-
-    status.innerText = "REPAIR COMPLETE";
-
-  }
-);
+});
 
 </script>
 
