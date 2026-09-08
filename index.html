@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -9,218 +10,339 @@
 
     <title>Remote Repair AR</title>
 
-    <!-- A-Frame -->
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-    <!-- MindAR -->
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
     <style>
+
+        html,
         body {
+
             margin: 0;
+            padding: 0;
+
+            width: 100%;
+            height: 100%;
+
             overflow: hidden;
+
             background: black;
+
+        }
+
+        #ar-container {
+
+            width: 100%;
+            height: 100%;
+
+            position: fixed;
+
+            top: 0;
+            left: 0;
+
         }
 
         #status {
+
             position: fixed;
+
             top: 20px;
             left: 0;
+
             width: 100%;
+
             text-align: center;
 
             color: white;
+
             font-family: Arial, sans-serif;
+
             font-size: 18px;
 
             text-shadow: 0 2px 5px black;
 
-            z-index: 10;
+            z-index: 100;
+
         }
+
     </style>
+
 </head>
 
 
 <body>
 
+
 <div id="status">
+
     Point camera at the generator
+
 </div>
 
 
-<a-scene
-
-    mindar-image="
-        imageTargetSrc: ./targets.mind;
-        maxTrack: 1;
-        filterMinCF: 0.0001;
-        filterBeta: 0.001;
-    "
-
-    vr-mode-ui="enabled: false"
-
-    device-orientation-permission-ui="enabled: false"
-
-    renderer="
-        colorManagement: true;
-        physicallyCorrectLights;
-    "
-
->
+<div id="ar-container"></div>
 
 
-    <!-- CAMERA -->
+<script type="module">
 
-    <a-camera
-        position="0 0 0"
-        look-controls="enabled: false">
-    </a-camera>
+import * as THREE from
+"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 
-    <!-- GENERATOR TARGET -->
-
-    <a-entity
-        id="generator-target"
-        mindar-image-target="targetIndex: 0">
+import { MindARThree } from
+"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js";
 
 
-        <!-- ================================= -->
-        <!-- FUEL CAP ROTATION AR -->
-        <!-- ================================= -->
 
-        <a-entity
-            id="fuel-cap-ar"
-
-            position="-0.16 0.33 0.05"
-        >
-
-            <!-- Rotating ring -->
-
-            <a-ring
-
-                radius-inner="0.055"
-                radius-outer="0.075"
-
-                color="#00ff66"
-
-                opacity="0.9"
-
-                animation="
-                    property: rotation;
-                    from: 0 0 0;
-                    to: 0 0 360;
-                    dur: 1800;
-                    easing: linear;
-                    loop: true;
-                "
-
-            >
-            </a-ring>
+/* =====================================
+   CREATE MINDAR
+===================================== */
 
 
-            <!-- Rotation symbol -->
+const mindarThree = new MindARThree({
 
-            <a-text
+    container:
+        document.querySelector("#ar-container"),
 
-                value="↻"
+    imageTargetSrc:
+        "./targets.mind",
 
-                align="center"
+    maxTrack: 1,
 
-                color="#00ff66"
+    resolution:
+        "1080p",
 
-                width="0.35"
-
-                position="0 0 0.01"
-
-            >
-            </a-text>
-
-        </a-entity>
-
-
-    </a-entity>
-
-
-</a-scene>
-
-
-<script>
-
-const target = document.querySelector("#generator-target");
-const status = document.querySelector("#status");
-
-
-// Generator detected
-
-target.addEventListener("targetFound", () => {
-
-    status.innerText = "ROTATE THIS PART ↻";
+    targetFPS:
+        30
 
 });
 
 
-// Generator lost
+/* =====================================
+   THREE.JS
+===================================== */
 
-target.addEventListener("targetLost", () => {
 
-    status.innerText = "Point camera at the generator";
+const { renderer, scene, camera } =
+    mindarThree;
 
-});
+
+
+/* =====================================
+   LIGHT
+===================================== */
+
+
+const light =
+    new THREE.HemisphereLight(
+        0xffffff,
+        0xbbbbff,
+        1
+    );
+
+scene.add(light);
+
+
+
+/* =====================================
+   TARGET ANCHOR
+===================================== */
+
+
+const anchor =
+    mindarThree.addAnchor(0);
+
+
+
+/* =====================================
+   ROTATION RING
+===================================== */
+
+
+const geometry =
+    new THREE.RingGeometry(
+        0.055,
+        0.075,
+        64
+    );
+
+
+const material =
+    new THREE.MeshBasicMaterial({
+
+        color: 0x00ff66,
+
+        transparent: true,
+
+        opacity: 0.9,
+
+        side: THREE.DoubleSide
+
+    });
+
+
+const ring =
+    new THREE.Mesh(
+        geometry,
+        material
+    );
 
 
 /*
-    Request high-resolution camera
+    Position relative to
+    generator image
 */
 
-document.addEventListener("DOMContentLoaded", async () => {
 
-    try {
+ring.position.set(
 
-        const video = document.querySelector("video");
+    -0.16,
+     0.33,
+     0.05
 
-        if (!video) return;
-
-        const stream = video.srcObject;
-
-        if (!stream) return;
-
-        const track = stream.getVideoTracks()[0];
-
-        if (!track) return;
+);
 
 
-        await track.applyConstraints({
+anchor.group.add(ring);
 
-            width: {
-                ideal: 1920
-            },
 
-            height: {
-                ideal: 1080
-            },
 
-            frameRate: {
-                ideal: 30
-            }
+/* =====================================
+   ROTATION SYMBOL
+===================================== */
 
-        });
 
+const canvas =
+    document.createElement("canvas");
+
+
+canvas.width = 256;
+canvas.height = 256;
+
+
+const ctx =
+    canvas.getContext("2d");
+
+
+ctx.fillStyle =
+    "#00ff66";
+
+
+ctx.font =
+    "180px Arial";
+
+
+ctx.textAlign =
+    "center";
+
+
+ctx.textBaseline =
+    "middle";
+
+
+ctx.fillText(
+    "↻",
+    128,
+    128
+);
+
+
+const texture =
+    new THREE.CanvasTexture(canvas);
+
+
+const symbolMaterial =
+    new THREE.SpriteMaterial({
+
+        map: texture,
+
+        transparent: true
+
+    });
+
+
+const symbol =
+    new THREE.Sprite(
+        symbolMaterial
+    );
+
+
+symbol.scale.set(
+    0.20,
+    0.20,
+    0.20
+);
+
+
+symbol.position.set(
+    -0.16,
+    0.33,
+    0.06
+);
+
+
+anchor.group.add(symbol);
+
+
+
+/* =====================================
+   START AR
+===================================== */
+
+
+await mindarThree.start();
+
+
+
+/* =====================================
+   AR LOOP
+===================================== */
+
+
+renderer.setAnimationLoop(() => {
+
+
+    /*
+        Rotate the repair indicator
+    */
+
+    ring.rotation.z +=
+        0.03;
+
+
+    symbol.rotation.z -=
+        0.03;
+
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+
+});
+
+
+/* =====================================
+   CAMERA INFORMATION
+===================================== */
+
+
+setTimeout(() => {
+
+    const video =
+        document.querySelector("video");
+
+    if (video) {
 
         console.log(
-            "Camera settings:",
-            track.getSettings()
-        );
-
-    } catch (error) {
-
-        console.log(
-            "Could not force 1080p:",
-            error
+            "Camera:",
+            video.videoWidth,
+            "x",
+            video.videoHeight
         );
 
     }
 
-});
+}, 3000);
+
 
 </script>
 
