@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -9,13 +10,12 @@
 
     <title>Remote Repair AR</title>
 
-    <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
-    <!-- MindAR -->
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
+
         html,
         body {
             margin: 0;
@@ -26,32 +26,42 @@
         }
 
         #status {
+
             position: fixed;
+
             top: 20px;
             left: 0;
+
             width: 100%;
 
             text-align: center;
 
             color: white;
+
             font-family: Arial, sans-serif;
+
             font-size: 20px;
+
             font-weight: bold;
 
             text-shadow: 0 2px 5px black;
 
             z-index: 100;
+
         }
+
     </style>
+
 </head>
 
 
 <body>
 
-<!-- Status text -->
 
 <div id="status">
-    Point camera at the generator
+
+    Point camera at generator
+
 </div>
 
 
@@ -66,7 +76,9 @@
 
     device-orientation-permission-ui="enabled: false"
 
-    embedded
+    renderer="
+        colorManagement: true;
+    "
 
 >
 
@@ -79,78 +91,168 @@
     </a-camera>
 
 
-    <!-- ====================================== -->
+    <!-- LIGHTING -->
+
+    <a-light
+        type="ambient"
+        color="#ffffff"
+        intensity="2">
+    </a-light>
+
+
+    <a-light
+        type="directional"
+        position="1 2 2"
+        intensity="2">
+    </a-light>
+
+
+    <!-- ================================= -->
     <!-- GENERATOR IMAGE TARGET -->
-    <!-- ====================================== -->
+    <!-- ================================= -->
 
     <a-entity
         id="generator-target"
         mindar-image-target="targetIndex: 0">
 
 
-        <!-- ====================================== -->
-        <!-- LEVER AR ACTION -->
-        <!-- ====================================== -->
+        <!-- ================================= -->
+        <!-- 3D LEVER ASSEMBLY -->
+        <!-- ================================= -->
 
         <a-entity
-            id="lever-action"
 
-            position="0.16 -0.18 0.08"
+            id="repair-lever"
+
+            position="0.16 -0.18 0.12"
+
+            scale="0.8 0.8 0.8"
+
         >
 
 
-            <!-- -------------------------------- -->
-            <!-- AR LEVER -->
-            <!-- -------------------------------- -->
+            <!-- ================================= -->
+            <!-- MOUNTING BASE -->
+            <!-- ================================= -->
 
             <a-box
 
-                id="lever"
+                position="0 0 0"
 
-                width="0.025"
-                height="0.12"
-                depth="0.025"
+                width="0.14"
+                height="0.09"
+                depth="0.035"
 
-                color="#00ff66"
-
-                animation="
-                    property: position;
-
-                    from: 0 0 0;
-
-                    to: 0.12 0 0;
-
-                    dur: 900;
-
-                    easing: easeInOutQuad;
-
-                    loop: true;
-
-                    dir: alternate;
-                "
+                color="#555555"
 
             >
             </a-box>
 
 
-            <!-- -------------------------------- -->
-            <!-- LEFT / RIGHT MOVEMENT INDICATOR -->
-            <!-- -------------------------------- -->
+            <!-- ================================= -->
+            <!-- PIVOT CYLINDER -->
+            <!-- ================================= -->
 
-            <a-text
+            <a-cylinder
 
-                value="↔"
+                position="0 0 0.035"
 
-                align="center"
+                radius="0.035"
 
-                color="#00ff66"
+                height="0.045"
 
-                width="0.4"
+                rotation="90 0 0"
 
-                position="0 0.12 0"
+                color="#aaaaaa"
 
             >
-            </a-text>
+            </a-cylinder>
+
+
+            <!-- ================================= -->
+            <!-- MOVING LEVER -->
+            <!-- ================================= -->
+
+            <a-entity
+
+                id="moving-lever"
+
+                position="0 0 0.055"
+
+                rotation="0 0 -25"
+
+                animation="
+
+                    property: rotation;
+
+                    from: 0 0 -25;
+
+                    to: 0 0 25;
+
+                    dur: 1000;
+
+                    easing: easeInOutSine;
+
+                    loop: true;
+
+                    dir: alternate;
+
+                "
+
+            >
+
+
+                <!-- LEVER ARM -->
+
+                <a-box
+
+                    position="0 0.09 0"
+
+                    width="0.035"
+
+                    height="0.18"
+
+                    depth="0.035"
+
+                    color="#777777"
+
+                >
+                </a-box>
+
+
+                <!-- HANDLE -->
+
+                <a-cylinder
+
+                    position="0 0.19 0"
+
+                    radius="0.035"
+
+                    height="0.08"
+
+                    rotation="90 0 0"
+
+                    color="#222222"
+
+                >
+                </a-cylinder>
+
+
+                <!-- HANDLE END -->
+
+                <a-sphere
+
+                    position="0 0.23 0"
+
+                    radius="0.045"
+
+                    color="#333333"
+
+                >
+                </a-sphere>
+
+
+            </a-entity>
 
 
         </a-entity>
@@ -164,42 +266,36 @@
 
 <script>
 
-    // Generator target
 
-    const target =
-        document.querySelector("#generator-target");
-
-
-    // Status text
-
-    const status =
-        document.querySelector("#status");
+const target =
+    document.querySelector("#generator-target");
 
 
-    // Generator detected
-
-    target.addEventListener(
-        "targetFound",
-        function () {
-
-            status.innerText =
-                "REPAIR ACTION";
-
-        }
-    );
+const status =
+    document.querySelector("#status");
 
 
-    // Generator lost
+target.addEventListener(
+    "targetFound",
+    () => {
 
-    target.addEventListener(
-        "targetLost",
-        function () {
+        status.innerText =
+            "3D REPAIR ACTION ACTIVE";
 
-            status.innerText =
-                "Point camera at the generator";
+    }
+);
 
-        }
-    );
+
+target.addEventListener(
+    "targetLost",
+    () => {
+
+        status.innerText =
+            "Point camera at generator";
+
+    }
+);
+
 
 </script>
 
