@@ -1,88 +1,209 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Remote Repair AR</title>
 
+    <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <!-- MindAR -->
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
+        html,
         body {
             margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
         }
 
         #status {
             position: fixed;
             top: 20px;
+            left: 0;
             width: 100%;
+
             text-align: center;
+
             color: white;
-            font-family: Arial;
-            font-size: 18px;
-            z-index: 10;
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+
             text-shadow: 0 2px 5px black;
+
+            z-index: 100;
         }
     </style>
 </head>
 
+
 <body>
 
-<div id="status">Starting camera...</div>
+<!-- Status text -->
+
+<div id="status">
+    Point camera at the generator
+</div>
+
 
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1;"
+
+    mindar-image="
+        imageTargetSrc: ./targets.mind;
+        maxTrack: 1;
+    "
+
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+
+    device-orientation-permission-ui="enabled: false"
+
+    embedded
+
+>
+
+
+    <!-- CAMERA -->
 
     <a-camera
         position="0 0 0"
         look-controls="enabled: false">
     </a-camera>
 
+
+    <!-- ====================================== -->
+    <!-- GENERATOR IMAGE TARGET -->
+    <!-- ====================================== -->
+
     <a-entity
         id="generator-target"
         mindar-image-target="targetIndex: 0">
 
-        <!-- Simple test AR marker -->
-        <a-ring
-            position="-0.16 0.36 0.05"
-            radius-inner="0.045"
-            radius-outer="0.065"
-            color="lime"
-            opacity="0.9">
 
-            <a-animation
-                attribute="rotation"
-                to="0 0 360"
-                dur="1500"
-                easing="linear"
-                repeat="indefinite">
-            </a-animation>
+        <!-- ====================================== -->
+        <!-- LEVER AR ACTION -->
+        <!-- ====================================== -->
 
-        </a-ring>
+        <a-entity
+            id="lever-action"
+
+            position="0.16 -0.18 0.08"
+        >
+
+
+            <!-- -------------------------------- -->
+            <!-- AR LEVER -->
+            <!-- -------------------------------- -->
+
+            <a-box
+
+                id="lever"
+
+                width="0.025"
+                height="0.12"
+                depth="0.025"
+
+                color="#00ff66"
+
+                animation="
+                    property: position;
+
+                    from: 0 0 0;
+
+                    to: 0.12 0 0;
+
+                    dur: 900;
+
+                    easing: easeInOutQuad;
+
+                    loop: true;
+
+                    dir: alternate;
+                "
+
+            >
+            </a-box>
+
+
+            <!-- -------------------------------- -->
+            <!-- LEFT / RIGHT MOVEMENT INDICATOR -->
+            <!-- -------------------------------- -->
+
+            <a-text
+
+                value="↔"
+
+                align="center"
+
+                color="#00ff66"
+
+                width="0.4"
+
+                position="0 0.12 0"
+
+            >
+            </a-text>
+
+
+        </a-entity>
+
 
     </a-entity>
 
+
 </a-scene>
+
 
 <script>
 
-const target = document.querySelector("#generator-target");
-const status = document.querySelector("#status");
+    // Generator target
 
-target.addEventListener("targetFound", () => {
-    status.innerText = "GENERATOR DETECTED";
-});
+    const target =
+        document.querySelector("#generator-target");
 
-target.addEventListener("targetLost", () => {
-    status.innerText = "Point camera at generator";
-});
+
+    // Status text
+
+    const status =
+        document.querySelector("#status");
+
+
+    // Generator detected
+
+    target.addEventListener(
+        "targetFound",
+        function () {
+
+            status.innerText =
+                "REPAIR ACTION";
+
+        }
+    );
+
+
+    // Generator lost
+
+    target.addEventListener(
+        "targetLost",
+        function () {
+
+            status.innerText =
+                "Point camera at the generator";
+
+        }
+    );
 
 </script>
 
+
 </body>
+
 </html>
