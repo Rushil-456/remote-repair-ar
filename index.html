@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Repair AR - Isolated Sequential Tasks</title>
+    <title>Remote Repair AR - Manual & Auto Control</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -24,10 +24,40 @@
             text-align: center;
             color: white;
             font-family: Arial, sans-serif;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             text-shadow: 0 2px 5px black;
             z-index: 100;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            z-index: 100;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: 2px solid #ffcc00;
+            padding: 10px 12px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn:active {
+            background: #ffcc00;
+            color: #000;
         }
     </style>
 </head>
@@ -35,6 +65,14 @@
 <body>
 
 <div id="status">Point camera at generator</div>
+
+<div id="controls">
+    <button class="btn" onclick="runTask(1)">Task 1</button>
+    <button class="btn" onclick="runTask(2)">Task 2</button>
+    <button class="btn" onclick="runTask(3)">Task 3</button>
+    <button class="btn" onclick="runTask(4)">Task 4</button>
+    <button class="btn" onclick="startAutoSequence()">Auto Run</button>
+</div>
 
 <a-scene
     mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1;"
@@ -51,38 +89,46 @@
     <!-- GENERATOR IMAGE TARGET -->
     <a-entity id="generator-target" mindar-image-target="targetIndex: 0">
 
-        <!-- ================================================= -->
-        <!-- TASK 1: FUEL CAP ASSEMBLY (Hidden by default)     -->
-        <!-- ================================================= -->
-        <a-entity id="fuel-cap-assembly" position="-0.22 0.38 0.05" visible="false">
-            <a-entity id="fuel-cap-pivot" position="0 0 0" rotation="0 0 0">
-                <a-cylinder id="cap-body" position="0 0 0" radius="0.065" height="0.025" color="#ffcc00" metalness="0.8" roughness="0.2"></a-cylinder>
+        <!-- TASK 1: FUEL CAP ASSEMBLY -->
+        <a-entity id="task1-cap" position="-0.22 0.38 0.05" visible="false">
+            <a-entity id="cap-pivot" position="0 0 0" rotation="0 0 0">
+                <a-cylinder position="0 0 0" radius="0.065" height="0.025" color="#ffcc00" metalness="0.8" roughness="0.2"></a-cylinder>
                 <a-cylinder position="0 0.015 0" radius="0.04" height="0.01" color="#222222"></a-cylinder>
                 <a-cylinder position="0 -0.02 0" radius="0.048" height="0.02" color="#888888"></a-cylinder>
             </a-entity>
             <a-ring position="0 -0.01 0" rotation="-90 0 0" radius-inner="0.045" radius-outer="0.07" color="#111111"></a-ring>
         </a-entity>
 
-        <!-- ================================================= -->
-        <!-- TASK 2: LEVER & PIVOT ASSEMBLY (Hidden by default)-->
-        <!-- ================================================= -->
-        <a-entity id="repair-lever" position="0.16 -0.18 0.12" scale="0.8 0.8 0.8" visible="false">
+        <!-- TASK 2: LEVER & PIVOT ASSEMBLY -->
+        <a-entity id="task2-lever" position="0.16 -0.18 0.12" scale="0.8 0.8 0.8" visible="false">
             <a-box position="0 0 0" width="0.14" height="0.09" depth="0.035" color="#555555"></a-box>
             <a-cylinder position="0 0 0.035" radius="0.035" height="0.045" rotation="90 0 0" color="#aaaaaa"></a-cylinder>
-            
             <a-entity id="moving-lever" position="0 0 0.055" rotation="0 0 -25">
-                <a-box id="lever-arm" position="0 0.09 0" width="0.035" height="0.18" depth="0.035" color="#ffcc00"></a-box>
+                <a-box position="0 0.09 0" width="0.035" height="0.18" depth="0.035" color="#ffcc00"></a-box>
                 <a-cylinder position="0 0.19 0" radius="0.035" height="0.08" rotation="90 0 0" color="#222222"></a-cylinder>
                 <a-sphere position="0 0.23 0" radius="0.045" color="#333333"></a-sphere>
             </a-entity>
         </a-entity>
 
-        <!-- ================================================= -->
-        <!-- TASK 3: SIDE PANEL COVER (Hidden by default)      -->
-        <!-- ================================================= -->
-        <a-entity id="side-panel-cover" position="0.22 0.15 0.08" visible="false">
-            <a-box id="panel-body" width="0.22" height="0.28" depth="0.02" color="#ffcc00" material="transparent: true; opacity: 1"></a-box>
-            <a-box position="0 0 0.02" width="0.04" height="0.08" depth="0.02" color="#111111"></a-box>
+        <!-- TASK 3: STARTER KEY SWITCH ASSEMBLY -->
+        <a-entity id="task3-key" position="-0.21 0.06 0.05" visible="false">
+            <!-- Keyhole Rim -->
+            <a-ring rotation="0 0 0" radius-inner="0.02" radius-outer="0.035" color="#111111"></a-ring>
+            <!-- 3D Key Container -->
+            <a-entity id="key-pivot" position="0 0 0.20" rotation="0 0 0">
+                <a-box position="0 0 -0.04" width="0.008" height="0.025" depth="0.08" color="#d4d4d4" metalness="0.9"></a-box>
+                <a-circle position="0 0 0.01" radius="0.03" color="#ffcc00"></a-circle>
+            </a-entity>
+        </a-entity>
+
+        <!-- TASK 4: CIRCUIT BREAKER SWITCH -->
+        <a-entity id="task4-breaker" position="-0.03 0.08 0.05" visible="false">
+            <!-- Breaker Housing -->
+            <a-box width="0.06" height="0.09" depth="0.02" color="#333333"></a-box>
+            <!-- Switch Toggle -->
+            <a-entity id="breaker-toggle" position="0 -0.015 0.015" rotation="-30 0 0">
+                <a-box position="0 0.015 0.01" width="0.025" height="0.04" depth="0.02" color="#ffcc00"></a-box>
+            </a-entity>
         </a-entity>
 
     </a-entity>
@@ -92,73 +138,83 @@
 const target = document.querySelector("#generator-target");
 const status = document.querySelector("#status");
 
-const fuelCapAssembly = document.querySelector("#fuel-cap-assembly");
-const capPivot = document.querySelector("#fuel-cap-pivot");
+const task1Cap = document.querySelector("#task1-cap");
+const capPivot = document.querySelector("#cap-pivot");
 
-const repairLever = document.querySelector("#repair-lever");
+const task2Lever = document.querySelector("#task2-lever");
 const movingLever = document.querySelector("#moving-lever");
 
-const sidePanel = document.querySelector("#side-panel-cover");
-const panelBody = document.querySelector("#panel-body");
+const task3Key = document.querySelector("#task3-key");
+const keyPivot = document.querySelector("#key-pivot");
 
-let timer1 = null;
-let timer2 = null;
-let timer3 = null;
+const task4Breaker = document.querySelector("#task4-breaker");
+const breakerToggle = document.querySelector("#breaker-toggle");
+
+let activeTimers = [];
+let targetIsFound = false;
+
+function clearAllTimers() {
+    activeTimers.forEach(t => clearTimeout(t));
+    activeTimers = [];
+}
 
 function resetAllTasks() {
-    // Hide all entities
-    fuelCapAssembly.setAttribute("visible", "false");
-    repairLever.setAttribute("visible", "false");
-    sidePanel.setAttribute("visible", "false");
+    clearAllTimers();
 
-    // Reset Task 1 (Fuel Cap)
+    task1Cap.setAttribute("visible", "false");
+    task2Lever.setAttribute("visible", "false");
+    task3Key.setAttribute("visible", "false");
+    task4Breaker.setAttribute("visible", "false");
+
+    // Reset Task 1
     capPivot.removeAttribute("animation__rotate");
     capPivot.removeAttribute("animation__lift");
     capPivot.setAttribute("rotation", "0 0 0");
     capPivot.setAttribute("position", "0 0 0");
 
-    // Reset Task 2 (Lever)
+    // Reset Task 2
     movingLever.removeAttribute("animation__pivot");
     movingLever.setAttribute("rotation", "0 0 -25");
 
-    // Reset Task 3 (Side Panel)
-    sidePanel.removeAttribute("animation__move");
-    panelBody.removeAttribute("animation__fade");
-    sidePanel.setAttribute("position", "0.22 0.15 0.08");
-    panelBody.setAttribute("material", "transparent: true; opacity: 1");
+    // Reset Task 3
+    keyPivot.removeAttribute("animation__insert");
+    keyPivot.removeAttribute("animation__turn");
+    keyPivot.setAttribute("position", "0 0 0.20");
+    keyPivot.setAttribute("rotation", "0 0 0");
+
+    // Reset Task 4
+    breakerToggle.removeAttribute("animation__flip");
+    breakerToggle.setAttribute("rotation", "-30 0 0");
 }
 
-target.addEventListener("targetFound", () => {
+function runTask(taskNumber) {
+    if (!targetIsFound) {
+        status.innerText = "Point camera at generator first!";
+        return;
+    }
+
     resetAllTasks();
 
-    // =========================================================
-    // TASK 1: UNSCREW FUEL CAP (0s - 5s)
-    // =========================================================
-    status.innerText = "TASK 1: UNSCREW FUEL CAP (0-5s)";
-    fuelCapAssembly.setAttribute("visible", "true");
+    if (taskNumber === 1) {
+        status.innerText = "TASK 1: UNSCREW FUEL CAP";
+        task1Cap.setAttribute("visible", "true");
 
-    capPivot.setAttribute("animation__rotate", {
-        property: "rotation",
-        to: "0 -720 0",
-        dur: 3000,
-        easing: "easeInOutQuad"
-    });
-
-    capPivot.setAttribute("animation__lift", {
-        property: "position",
-        to: "0 0.20 0",
-        dur: 3000,
-        easing: "easeInOutQuad"
-    });
-
-    // =========================================================
-    // TASK 2: LEVER & PIVOT ACTION (At 5th sec)
-    // =========================================================
-    timer1 = setTimeout(() => {
-        // Hide Task 1, Show Task 2
-        fuelCapAssembly.setAttribute("visible", "false");
-        repairLever.setAttribute("visible", "true");
-        status.innerText = "TASK 2: ACTUATE LEVER & PIVOT (5-10s)";
+        capPivot.setAttribute("animation__rotate", {
+            property: "rotation",
+            to: "0 -720 0",
+            dur: 3000,
+            easing: "easeInOutQuad"
+        });
+        capPivot.setAttribute("animation__lift", {
+            property: "position",
+            to: "0 0.20 0",
+            dur: 3000,
+            easing: "easeInOutQuad"
+        });
+    } 
+    else if (taskNumber === 2) {
+        status.innerText = "TASK 2: ACTUATE LEVER & PIVOT";
+        task2Lever.setAttribute("visible", "true");
 
         movingLever.setAttribute("animation__pivot", {
             property: "rotation",
@@ -169,51 +225,82 @@ target.addEventListener("targetFound", () => {
             loop: 2,
             dir: "alternate"
         });
+    } 
+    else if (taskNumber === 3) {
+        status.innerText = "TASK 3: INSERT & TURN STARTER KEY";
+        task3Key.setAttribute("visible", "true");
 
-        // =========================================================
-        // TASK 3: REMOVE SIDE PANEL COVER (At 10th sec)
-        // =========================================================
-        timer2 = setTimeout(() => {
-            // Hide Task 2, Show Task 3
-            repairLever.setAttribute("visible", "false");
-            sidePanel.setAttribute("visible", "true");
-            status.innerText = "TASK 3: REMOVE SIDE PANEL COVER (10-15s)";
+        // Insert key into slot
+        keyPivot.setAttribute("animation__insert", {
+            property: "position",
+            to: "0 0 0.02",
+            dur: 1500,
+            easing: "easeOutQuad"
+        });
 
-            // Slide side panel outward
-            sidePanel.setAttribute("animation__move", {
-                property: "position",
-                to: "0.22 0.15 0.40",
-                dur: 3000,
-                easing: "easeOutQuad"
+        // Turn key clockwise after insertion
+        const turnTimer = setTimeout(() => {
+            keyPivot.setAttribute("animation__turn", {
+                property: "rotation",
+                to: "0 0 -90",
+                dur: 1200,
+                easing: "easeInOutQuad"
             });
+        }, 1500);
+        activeTimers.push(turnTimer);
+    } 
+    else if (taskNumber === 4) {
+        status.innerText = "TASK 4: FLIP CIRCUIT BREAKER ON";
+        task4Breaker.setAttribute("visible", "true");
 
-            // Fade panel transparency out
-            panelBody.setAttribute("animation__fade", {
-                property: "components.material.material.opacity",
-                to: 0,
-                dur: 3000,
-                easing: "easeOutQuad"
-            });
+        // Flip switch upward
+        breakerToggle.setAttribute("animation__flip", {
+            property: "rotation",
+            to: "30 0 0",
+            dur: 1000,
+            easing: "easeInOutBack"
+        });
+    }
+}
 
-            // End Sequence
-            timer3 = setTimeout(() => {
-                sidePanel.setAttribute("visible", "false");
-                status.innerText = "ALL REPAIR TASKS COMPLETED SUCCESSFULLY!";
-            }, 3000);
+function startAutoSequence() {
+    if (!targetIsFound) return;
 
-        }, 5000); // 10th second trigger
+    resetAllTasks();
 
-    }, 5000); // 5th second trigger
+    // Task 1 (0s - 5s)
+    runTask(1);
+
+    // Task 2 (5s - 10s)
+    activeTimers.push(setTimeout(() => {
+        runTask(2);
+    }, 5000));
+
+    // Task 3 (10s - 15s)
+    activeTimers.push(setTimeout(() => {
+        runTask(3);
+    }, 10000));
+
+    // Task 4 (15s - 20s)
+    activeTimers.push(setTimeout(() => {
+        runTask(4);
+    }, 15000));
+
+    // Completion (20s)
+    activeTimers.push(setTimeout(() => {
+        resetAllTasks();
+        status.innerText = "ALL 4 AR REPAIR TASKS COMPLETED!";
+    }, 20000));
+}
+
+target.addEventListener("targetFound", () => {
+    targetIsFound = true;
+    startAutoSequence();
 });
 
 target.addEventListener("targetLost", () => {
+    targetIsFound = false;
     status.innerText = "Point camera at generator";
-
-    // Clear active sequence timers
-    if (timer1) clearTimeout(timer1);
-    if (timer2) clearTimeout(timer2);
-    if (timer3) clearTimeout(timer3);
-
     resetAllTasks();
 });
 </script>
