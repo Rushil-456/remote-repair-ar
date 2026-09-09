@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Repair AR - Aligned Tasks</title>
+    <title>Remote Repair AR - Precise Manual Control</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -95,9 +95,9 @@
     <a-entity id="generator-target" mindar-image-target="targetIndex: 0">
 
         <!-- ================================================= -->
-        <!-- TASK 1: FUEL CAP (Aligned on top tank port)       -->
+        <!-- TASK 1: FUEL CAP (Aligned on Top Yellow Tank Port)-->
         <!-- ================================================= -->
-        <a-entity id="task1-cap" position="-0.18 0.30 0.02" scale="0.65 0.65 0.65" visible="false">
+        <a-entity id="task1-cap" position="-0.20 0.22 0.02" scale="0.60 0.60 0.60" visible="false">
             <a-entity id="cap-pivot" position="0 0 0" rotation="0 0 0">
                 <a-cylinder position="0 0 0" radius="0.065" height="0.025" color="#ffcc00" metalness="0.8" roughness="0.2"></a-cylinder>
                 <a-cylinder position="0 0.015 0" radius="0.04" height="0.01" color="#222222"></a-cylinder>
@@ -107,38 +107,38 @@
         </a-entity>
 
         <!-- ================================================= -->
-        <!-- TASK 2: LEVER & PIVOT (Aligned on engine lever)   -->
+        <!-- TASK 2: LEVER & PIVOT (Aligned on Engine Lever)   -->
         <!-- ================================================= -->
-        <a-entity id="task2-lever" position="0.10 -0.15 0.05" scale="0.75 0.75 0.75" visible="false">
-            <a-box position="0 0 0" width="0.12" height="0.08" depth="0.03" color="#444444"></a-box>
-            <a-cylinder position="0 0 0.03" radius="0.03" height="0.04" rotation="90 0 0" color="#aaaaaa"></a-cylinder>
-            <a-entity id="moving-lever" position="0 0 0.05" rotation="0 0 -25">
-                <a-box position="0 0.08 0" width="0.028" height="0.16" depth="0.028" color="#ffcc00"></a-box>
-                <a-cylinder position="0 0.17 0" radius="0.03" height="0.07" rotation="90 0 0" color="#222222"></a-cylinder>
-                <a-sphere position="0 0.21 0" radius="0.038" color="#333333"></a-sphere>
+        <a-entity id="task2-lever" position="0.08 -0.11 0.08" scale="0.70 0.70 0.70" visible="false">
+            <a-box position="0 0 0" width="0.10" height="0.07" depth="0.03" color="#444444"></a-box>
+            <a-cylinder position="0 0 0.03" radius="0.025" height="0.035" rotation="90 0 0" color="#aaaaaa"></a-cylinder>
+            <a-entity id="moving-lever" position="0 0 0.04" rotation="0 0 -25">
+                <a-box position="0 0.07 0" width="0.025" height="0.14" depth="0.025" color="#ffcc00"></a-box>
+                <a-cylinder position="0 0.15 0" radius="0.025" height="0.06" rotation="90 0 0" color="#222222"></a-cylinder>
+                <a-sphere position="0 0.19 0" radius="0.032" color="#333333"></a-sphere>
             </a-entity>
         </a-entity>
 
         <!-- ================================================= -->
-        <!-- TASK 3: STARTER KEY (Aligned on Starter SW dial)  -->
+        <!-- TASK 3: STARTER KEY (Aligned on STARTER SW Dial)  -->
         <!-- ================================================= -->
-        <a-entity id="task3-key" position="-0.14 0.08 0.05" scale="0.9 0.9 0.9" visible="false">
-            <a-ring rotation="0 0 0" radius-inner="0.02" radius-outer="0.035" color="#111111"></a-ring>
+        <a-entity id="task3-key" position="-0.21 0.06 0.05" scale="0.85 0.85 0.85" visible="false">
+            <a-ring rotation="0 0 0" radius-inner="0.018" radius-outer="0.03" color="#111111"></a-ring>
             <a-entity id="key-pivot" position="0 0 0.18" rotation="0 0 0">
                 <!-- Key Blade -->
-                <a-box position="0 0 -0.05" width="0.008" height="0.02" depth="0.10" color="#d4d4d4" metalness="0.9"></a-box>
-                <!-- Key Handle/Bow -->
-                <a-cylinder position="0 0 0.02" radius="0.03" height="0.01" rotation="90 0 0" color="#ffcc00"></a-cylinder>
+                <a-box position="0 0 -0.05" width="0.008" height="0.018" depth="0.09" color="#d4d4d4" metalness="0.9"></a-box>
+                <!-- Key Handle -->
+                <a-cylinder position="0 0 0.02" radius="0.028" height="0.008" rotation="90 0 0" color="#ffcc00"></a-cylinder>
             </a-entity>
         </a-entity>
 
         <!-- ================================================= -->
-        <!-- TASK 4: BREAKER SWITCH (Aligned on Breaker box)   -->
+        <!-- TASK 4: BREAKER SWITCH (Aligned on Breaker Box)   -->
         <!-- ================================================= -->
-        <a-entity id="task4-breaker" position="0.08 0.08 0.05" scale="1.1 1.1 1.1" visible="false">
-            <a-box width="0.05" height="0.08" depth="0.02" color="#222222"></a-box>
-            <a-entity id="breaker-toggle" position="0 -0.015 0.015" rotation="-35 0 0">
-                <a-box position="0 0.015 0.01" width="0.02" height="0.035" depth="0.02" color="#ffcc00"></a-box>
+        <a-entity id="task4-breaker" position="0.07 0.07 0.05" scale="1.0 1.0 1.0" visible="false">
+            <a-box width="0.045" height="0.07" depth="0.02" color="#222222"></a-box>
+            <a-entity id="breaker-toggle" position="0 -0.012 0.015" rotation="-35 0 0">
+                <a-box position="0 0.012 0.01" width="0.018" height="0.03" depth="0.018" color="#ffcc00"></a-box>
             </a-entity>
         </a-entity>
 
@@ -164,10 +164,10 @@ const breakerToggle = document.querySelector("#breaker-toggle");
 let activeTimers = [];
 let targetIsFound = false;
 
-// Force HD Camera Constraints to fix camera blurriness
+// Request HD stream constraints to prevent camera blurriness
 async function applyHDCameraConstraints() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        await navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: "environment",
                 width: { ideal: 1920 },
@@ -176,7 +176,7 @@ async function applyHDCameraConstraints() {
             }
         });
     } catch (e) {
-        console.warn("HD camera constraints non-critical error:", e);
+        console.warn("HD camera constraints non-critical notice:", e);
     }
 }
 
@@ -234,7 +234,7 @@ function runTask(taskNumber) {
         });
         capPivot.setAttribute("animation__lift", {
             property: "position",
-            to: "0 0.18 0",
+            to: "0 0.15 0",
             dur: 3000,
             easing: "easeInOutQuad"
         });
@@ -257,7 +257,6 @@ function runTask(taskNumber) {
         status.innerText = "TASK 3: INSERT & TURN STARTER KEY";
         task3Key.setAttribute("visible", "true");
 
-        // Insert key into slot
         keyPivot.setAttribute("animation__insert", {
             property: "position",
             to: "0 0 0.01",
@@ -265,7 +264,6 @@ function runTask(taskNumber) {
             easing: "easeOutQuad"
         });
 
-        // Turn key clockwise after insertion
         const turnTimer = setTimeout(() => {
             keyPivot.setAttribute("animation__turn", {
                 property: "rotation",
