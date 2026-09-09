@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Repair AR - Precise Manual Control</title>
+    <title>Remote Repair AR - Stabilized & Realigned</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -80,7 +80,7 @@
 </div>
 
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1;"
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
     renderer="colorManagement: true; precision: highp; antialias: true;">
@@ -95,9 +95,9 @@
     <a-entity id="generator-target" mindar-image-target="targetIndex: 0">
 
         <!-- ================================================= -->
-        <!-- TASK 1: FUEL CAP (Aligned on Top Yellow Tank Port)-->
+        <!-- TASK 1: FUEL CAP (Moved higher up to top tank)    -->
         <!-- ================================================= -->
-        <a-entity id="task1-cap" position="-0.20 0.22 0.02" scale="0.60 0.60 0.60" visible="false">
+        <a-entity id="task1-cap" position="-0.20 0.28 0.02" scale="0.60 0.60 0.60" visible="false">
             <a-entity id="cap-pivot" position="0 0 0" rotation="0 0 0">
                 <a-cylinder position="0 0 0" radius="0.065" height="0.025" color="#ffcc00" metalness="0.8" roughness="0.2"></a-cylinder>
                 <a-cylinder position="0 0.015 0" radius="0.04" height="0.01" color="#222222"></a-cylinder>
@@ -107,9 +107,9 @@
         </a-entity>
 
         <!-- ================================================= -->
-        <!-- TASK 2: LEVER & PIVOT (Aligned on Engine Lever)   -->
+        <!-- TASK 2: LEVER & PIVOT (Moved slightly top right)  -->
         <!-- ================================================= -->
-        <a-entity id="task2-lever" position="0.08 -0.11 0.08" scale="0.70 0.70 0.70" visible="false">
+        <a-entity id="task2-lever" position="0.12 -0.09 0.08" scale="0.70 0.70 0.70" visible="false">
             <a-box position="0 0 0" width="0.10" height="0.07" depth="0.03" color="#444444"></a-box>
             <a-cylinder position="0 0 0.03" radius="0.025" height="0.035" rotation="90 0 0" color="#aaaaaa"></a-cylinder>
             <a-entity id="moving-lever" position="0 0 0.04" rotation="0 0 -25">
@@ -120,9 +120,9 @@
         </a-entity>
 
         <!-- ================================================= -->
-        <!-- TASK 3: STARTER KEY (Aligned on STARTER SW Dial)  -->
+        <!-- TASK 3: STARTER KEY (Moved slightly top left)     -->
         <!-- ================================================= -->
-        <a-entity id="task3-key" position="-0.21 0.06 0.05" scale="0.85 0.85 0.85" visible="false">
+        <a-entity id="task3-key" position="-0.23 0.08 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-ring rotation="0 0 0" radius-inner="0.018" radius-outer="0.03" color="#111111"></a-ring>
             <a-entity id="key-pivot" position="0 0 0.18" rotation="0 0 0">
                 <!-- Key Blade -->
@@ -133,9 +133,9 @@
         </a-entity>
 
         <!-- ================================================= -->
-        <!-- TASK 4: BREAKER SWITCH (Aligned on Breaker Box)   -->
+        <!-- TASK 4: BREAKER SWITCH (Shifted significantly left)-->
         <!-- ================================================= -->
-        <a-entity id="task4-breaker" position="0.07 0.07 0.05" scale="1.0 1.0 1.0" visible="false">
+        <a-entity id="task4-breaker" position="-0.08 0.08 0.05" scale="1.0 1.0 1.0" visible="false">
             <a-box width="0.045" height="0.07" depth="0.02" color="#222222"></a-box>
             <a-entity id="breaker-toggle" position="0 -0.012 0.015" rotation="-35 0 0">
                 <a-box position="0 0.012 0.01" width="0.018" height="0.03" depth="0.018" color="#ffcc00"></a-box>
@@ -164,7 +164,7 @@ const breakerToggle = document.querySelector("#breaker-toggle");
 let activeTimers = [];
 let targetIsFound = false;
 
-// Request HD stream constraints to prevent camera blurriness
+// Apply high-definition constraints for clear video stream
 async function applyHDCameraConstraints() {
     try {
         await navigator.mediaDevices.getUserMedia({
