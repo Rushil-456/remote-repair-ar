@@ -6,35 +6,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Multi-Machine AR Assistant</title>
     
-    <!-- Dependencies -->
+    <!-- A-Frame & MindAR Libraries -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
+        /* CRITICAL: Force background transparent on all root tags */
         html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: transparent !important;
+            background: transparent !important;
         }
 
-        /* FIX BLACK SCREEN: FORCE VIDEO FEED TO SIT BEHIND THE 3D CANVAS */
+        /* CRITICAL: MindAR injects a <video> element. We force it visible under the AR canvas. */
         video {
-            position: absolute !important;
+            position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
             object-fit: cover !important;
-            z-index: -2 !important;
+            z-index: 1 !important;
             display: block !important;
         }
 
+        /* CRITICAL: Force A-Frame WebGL Canvas on top of video with transparent background */
         .a-canvas {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 2 !important;
             background-color: transparent !important;
-            z-index: 1 !important;
+        }
+
+        /* Hide MindAR default scanning overlay box if it blocks the view */
+        .mindar-ui-overlay {
+            z-index: 3 !important;
         }
 
         #status {
@@ -101,25 +113,26 @@
     <button class="btn" id="btn4" onclick="runTask(4)">Task 4</button>
 </div>
 
+<!-- A-SCENE SETUP WITH TRANSPARENT RENDERER -->
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001;"
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001; uiScanning: #status;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
-    renderer="colorManagement: true; precision: highp; antialias: true; alpha: true;">
+    renderer="colorManagement: true; precision: highp; antialias: true; alpha: true; transparent: true;">
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- LIGHTING SETUP -->
-    <a-light type="ambient" color="#ffffff" intensity="2.0"></a-light>
-    <a-light type="directional" position="2 4 3" intensity="1.8"></a-light>
-    <a-light type="directional" position="-2 -2 1" intensity="0.6" color="#ffcc00"></a-light>
+    <!-- LIGHTING FOR HIGH-QUALITY OBJECT RENDERING -->
+    <a-light type="ambient" color="#ffffff" intensity="1.8"></a-light>
+    <a-light type="directional" position="2 4 3" intensity="1.5"></a-light>
+    <a-light type="directional" position="-2 -2 1" intensity="0.5" color="#ffcc00"></a-light>
 
     <!-- ================================================= -->
     <!-- TARGET 0: DIESEL GENERATOR                        -->
     <!-- ================================================= -->
     <a-entity id="target-generator" mindar-image-target="targetIndex: 0">
 
-        <!-- Task 1: Metal Fuel Cap -->
+        <!-- Task 1: Fuel Cap (Unscrew & Lift) -->
         <a-entity id="gen-task1" position="-0.20 0.28 0.02" scale="0.65 0.65 0.65" visible="false">
             <a-cylinder radius="0.075" height="0.015" color="#111" position="0 -0.01 0"></a-cylinder>
             <a-entity id="gen-cap-pivot" position="0 0 0">
@@ -128,7 +141,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- Task 2: Throttle Control Lever -->
+        <!-- Task 2: Throttle Control Lever (Pumping Action) -->
         <a-entity id="gen-task2" position="0.12 -0.09 0.08" scale="0.75 0.75 0.75" visible="false">
             <a-box position="0 0 0" width="0.09" height="0.08" depth="0.02" color="#222"></a-box>
             <a-cylinder position="0 0 0.015" radius="0.03" height="0.02" rotation="90 0 0" color="#888" metalness="0.8"></a-cylinder>
@@ -138,7 +151,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- Task 3: Ignition Lock with Key -->
+        <!-- Task 3: Key Lock (Insert & Turn) -->
         <a-entity id="gen-task3" position="-0.23 0.08 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder radius="0.04" height="0.01" rotation="90 0 0" color="#333"></a-cylinder>
             <a-ring radius-inner="0.02" radius-outer="0.038" position="0 0 0.006" color="#ffcc00"></a-ring>
@@ -148,7 +161,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- Task 4: Circuit Breaker Switch -->
+        <!-- Task 4: Breaker Switch (Flip) -->
         <a-entity id="gen-task4" position="-0.08 0.08 0.05" visible="false">
             <a-box width="0.06" height="0.09" depth="0.02" color="#1e1e1e"></a-box>
             <a-entity id="gen-breaker-toggle" position="0 -0.015 0.02" rotation="-35 0 0">
@@ -163,7 +176,7 @@
     <!-- ================================================= -->
     <a-entity id="target-fanuc" mindar-image-target="targetIndex: 1">
         
-        <!-- CNC Task 1: Emergency Stop Button -->
+        <!-- CNC Task 1: Emergency Stop Button (Twist-Release) -->
         <a-entity id="cnc-task1" position="-0.38 -0.08 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder radius="0.06" height="0.015" rotation="90 0 0" color="#ffeb3b"></a-cylinder>
             <a-entity id="cnc-estop-knob" position="0 0 0">
@@ -172,7 +185,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- CNC Task 2: Rotary Mode Selector Knob -->
+        <!-- CNC Task 2: Rotary Mode Knob -->
         <a-entity id="cnc-task2" position="-0.23 -0.16 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
             <a-entity id="cnc-mode-knob" rotation="0 0 -45">
@@ -190,7 +203,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- CNC Task 4: Cycle Start Button -->
+        <!-- CNC Task 4: Push Button Cycle Start -->
         <a-entity id="cnc-task4" position="-0.30 -0.38 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-box width="0.065" height="0.065" depth="0.015" color="#222"></a-box>
             <a-entity id="cnc-start-btn" position="0 0 0.01">
@@ -213,19 +226,6 @@ const btn3 = document.querySelector("#btn3");
 const btn4 = document.querySelector("#btn4");
 
 let activeTargetIndex = -1;
-
-// Start camera feed directly via standard Browser API to eliminate black screen
-async function startWebcamDirectly() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }
-        });
-        // Release immediate lock so MindAR can inherit stream
-        stream.getTracks().forEach(track => track.stop());
-    } catch (err) {
-        status.innerText = "Camera Blocked! Please grant camera permissions & ensure HTTPS.";
-    }
-}
 
 function updateUI() {
     if (activeTargetIndex === 0) {
@@ -289,7 +289,7 @@ function hideAllTaskModels() {
 
 function runTask(taskNum) {
     if (activeTargetIndex === -1) {
-        status.innerText = "Please point camera at a valid machine first!";
+        status.innerText = "Please point camera at a valid machine target first!";
         return;
     }
 
@@ -364,7 +364,7 @@ function runTask(taskNum) {
     }
 }
 
-// TARGET LISTENERS
+// TARGET EVENT LISTENERS
 targetGen.addEventListener("targetFound", () => {
     activeTargetIndex = 0;
     updateUI();
@@ -384,8 +384,6 @@ targetFanuc.addEventListener("targetLost", () => {
     hideAllTaskModels();
     updateUI();
 });
-
-window.addEventListener("DOMContentLoaded", startWebcamDirectly);
 </script>
 
 </body>
