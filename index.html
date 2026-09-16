@@ -3,42 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Dual Machine AR Assistant</title>
+    <title>Multi-Machine AR Assistant (Method 1)</title>
     
+    <!-- A-Frame and MindAR Libraries -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent !important; }
-        video { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; object-fit: cover !important; z-index: 1 !important; display: block !important; }
-        .a-canvas { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 2 !important; background-color: transparent !important; }
-        
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: transparent !important;
+        }
+
+        video {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            object-fit: cover !important;
+            z-index: 1 !important;
+            display: block !important;
+        }
+
+        .a-canvas {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 2 !important;
+            background-color: transparent !important;
+        }
+
         #status {
-            position: fixed; top: 20px; left: 0; width: 100%; text-align: center;
-            color: #ffffff; font-family: Arial, sans-serif; font-size: 15px; font-weight: bold;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.9); z-index: 100; padding: 0 10px; box-sizing: border-box;
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            font-size: 15px;
+            font-weight: bold;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+            z-index: 100;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        #zoomLevel {
+            position: fixed; 
+            right: 12px; 
+            top: 52px; 
+            z-index: 100;
+            padding: 6px 9px; 
+            border-radius: 8px;
+            background: rgba(0,0,0,.55); 
+            color: #ffcc00;
+            border: 1px solid rgba(255,204,0,.55);
+            font: bold 12px Arial, sans-serif; 
+            pointer-events: none;
         }
 
         #controls {
-            position: fixed; bottom: 25px; left: 0; width: 100%; display: flex;
-            justify-content: center; gap: 6px; z-index: 100; padding: 0 10px; box-sizing: border-box;
+            position: fixed;
+            bottom: 25px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            z-index: 100;
+            padding: 0 10px;
+            box-sizing: border-box;
         }
 
         .btn {
-            background: rgba(15, 15, 15, 0.9); color: #ffcc00; border: 2px solid #ffcc00;
-            padding: 12px 16px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold;
-            border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            background: rgba(15, 15, 15, 0.9);
+            color: #ffcc00;
+            border: 2px solid #ffcc00;
+            padding: 12px 20px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
         }
-        .btn:active { background: #ffcc00; color: #000; }
-        .a-enter-vr { display: none !important; }
+
+        .btn:active {
+            background: #ffcc00;
+            color: #000;
+        }
+
+        .a-enter-vr {
+            display: none !important;
+        }
     </style>
 </head>
+
 <body>
 
-<div id="status">Scan any component on the Generator or CNC Panel...</div>
+<div id="status">Scan any cropped component target...</div>
+<div id="zoomLevel">1.0×</div>
 
 <div id="controls">
-    <button class="btn" id="actionBtn" onclick="runTargetAction()">Perform Action</button>
+    <button class="btn" id="actionBtn" onclick="runTargetAction()">Run Action</button>
 </div>
 
 <a-scene
@@ -48,67 +123,105 @@
     renderer="colorManagement: true; precision: highp; antialias: true; alpha: true; transparent: true;">
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- LIGHTING -->
     <a-light type="ambient" color="#ffffff" intensity="2.0"></a-light>
     <a-light type="directional" position="2 4 3" intensity="1.8"></a-light>
+    <a-light type="directional" position="-2 -2 1" intensity="0.6" color="#ffcc00"></a-light>
 
-    <!-- GENERATOR TARGETS (0 - 3) -->
+    <!-- ================================================= -->
+    <!-- GENERATOR TARGETS (0 - 3)                         -->
+    <!-- ================================================= -->
+    
+    <!-- TARGET 0: GENERATOR FUEL CAP -->
     <a-entity id="target-0" mindar-image-target="targetIndex: 0">
-        <a-cylinder radius="0.075" height="0.015" color="#111" rotation="90 0 0"></a-cylinder>
-        <a-entity id="pivot-0">
-            <a-cylinder radius="0.07" height="0.03" rotation="90 0 0" color="#ffa700" metalness="0.7"></a-cylinder>
+        <a-entity position="0 0 0.01" scale="0.8 0.8 0.8">
+            <a-cylinder radius="0.075" height="0.015" color="#111" rotation="90 0 0"></a-cylinder>
+            <a-entity id="pivot-0" position="0 0 0">
+                <a-cylinder radius="0.07" height="0.03" rotation="90 0 0" color="#ffa700" metalness="0.7" roughness="0.3"></a-cylinder>
+                <a-box position="0 0.02 0.015" width="0.12" height="0.015" depth="0.025" color="#222"></a-box>
+            </a-entity>
         </a-entity>
     </a-entity>
 
+    <!-- TARGET 1: GENERATOR THROTTLE LEVER -->
     <a-entity id="target-1" mindar-image-target="targetIndex: 1">
-        <a-box width="0.09" height="0.08" depth="0.02" color="#222"></a-box>
-        <a-entity id="pivot-1" position="0 0 0.02" rotation="0 0 -25">
-            <a-box position="0 0.08 0" width="0.018" height="0.15" depth="0.018" color="#dddddd" metalness="0.9"></a-box>
-            <a-sphere position="0 0.16 0" radius="0.03" color="#d32f2f"></a-sphere>
+        <a-entity position="0 0 0.01" scale="0.8 0.8 0.8">
+            <a-box position="0 0 0" width="0.09" height="0.08" depth="0.02" color="#222"></a-box>
+            <a-cylinder position="0 0 0.015" radius="0.03" height="0.02" rotation="90 0 0" color="#888" metalness="0.8"></a-cylinder>
+            <a-entity id="pivot-1" position="0 0 0.02" rotation="0 0 -25">
+                <a-box position="0 0.08 0" width="0.018" height="0.15" depth="0.018" color="#dddddd" metalness="0.9"></a-box>
+                <a-sphere position="0 0.16 0" radius="0.03" color="#d32f2f" roughness="0.2"></a-sphere>
+            </a-entity>
         </a-entity>
     </a-entity>
 
+    <!-- TARGET 2: GENERATOR KEY SWITCH -->
     <a-entity id="target-2" mindar-image-target="targetIndex: 2">
-        <a-cylinder radius="0.04" height="0.01" rotation="90 0 0" color="#333"></a-cylinder>
-        <a-entity id="pivot-2" position="0 0 0.02">
-            <a-box position="0 0 -0.01" width="0.006" height="0.015" depth="0.06" color="#cccccc" metalness="0.95"></a-box>
+        <a-entity position="0 0 0.01" scale="0.8 0.8 0.8">
+            <a-cylinder radius="0.04" height="0.01" rotation="90 0 0" color="#333"></a-cylinder>
+            <a-ring radius-inner="0.02" radius-outer="0.038" position="0 0 0.006" color="#ffcc00"></a-ring>
+            <a-entity id="pivot-2" position="0 0 0.02">
+                <a-box position="0 0 -0.01" width="0.006" height="0.015" depth="0.06" color="#cccccc" metalness="0.95"></a-box>
+                <a-cylinder position="0 0 0.03" radius="0.028" height="0.008" rotation="90 0 0" color="#ff9800"></a-cylinder>
+            </a-entity>
         </a-entity>
     </a-entity>
 
+    <!-- TARGET 3: GENERATOR BREAKER SWITCH -->
     <a-entity id="target-3" mindar-image-target="targetIndex: 3">
-        <a-box width="0.06" height="0.09" depth="0.02" color="#1e1e1e"></a-box>
-        <a-entity id="pivot-3" position="0 -0.015 0.02" rotation="-35 0 0">
-            <a-box position="0 0.018 0.01" width="0.02" height="0.035" depth="0.02" color="#ffb300"></a-box>
+        <a-entity position="0 0 0.01" scale="0.8 0.8 0.8">
+            <a-box width="0.06" height="0.09" depth="0.02" color="#1e1e1e"></a-box>
+            <a-entity id="pivot-3" position="0 -0.015 0.02" rotation="-35 0 0">
+                <a-box position="0 0.018 0.01" width="0.02" height="0.035" depth="0.02" color="#ffb300" metalness="0.4"></a-box>
+            </a-entity>
         </a-entity>
     </a-entity>
 
-    <!-- CNC TARGETS (4 - 7) -->
+    <!-- ================================================= -->
+    <!-- CNC PANEL TARGETS (4 - 7)                         -->
+    <!-- ================================================= -->
+    
+    <!-- TARGET 4: CNC E-STOP BUTTON -->
     <a-entity id="target-4" mindar-image-target="targetIndex: 4">
-        <a-cylinder radius="0.06" height="0.015" rotation="90 0 0" color="#ffeb3b"></a-cylinder>
-        <a-entity id="pivot-4">
-            <a-cylinder radius="0.048" height="0.035" rotation="90 0 0" color="#d32f2f"></a-cylinder>
+        <a-entity position="0 0 0.01" scale="0.8 0.8 0.8">
+            <a-cylinder radius="0.06" height="0.015" rotation="90 0 0" color="#ffeb3b"></a-cylinder>
+            <a-entity id="pivot-4" position="0 0 0">
+                <a-cylinder radius="0.048" height="0.035" rotation="90 0 0" color="#d32f2f" metalness="0.2"></a-cylinder>
+                <a-torus radius="0.05" radius-tubular="0.004" color="#b71c1c"></a-torus>
+            </a-entity>
         </a-entity>
     </a-entity>
 
+    <!-- TARGET 5: CNC MODE SELECTOR DIAL -->
     <a-entity id="target-5" mindar-image-target="targetIndex: 5">
-        <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
-        <a-entity id="pivot-5" rotation="0 0 -45">
-            <a-cylinder radius="0.032" height="0.03" rotation="90 0 0" color="#222"></a-cylinder>
-            <a-box position="0 0.022 0.018" width="0.008" height="0.038" depth="0.012" color="#fff"></a-box>
+        <a-entity position="0 0 0.01" scale="0.8 0.8 0.8">
+            <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
+            <a-entity id="pivot-5" rotation="0 0 -45">
+                <a-cylinder radius="0.032" height="0.03" rotation="90 0 0" color="#222" metalness="0.5"></a-cylinder>
+                <a-box position="0 0.022 0.018" width="0.008" height="0.038" depth="0.012" color="#ffffff"></a-box>
+            </a-entity>
         </a-entity>
     </a-entity>
 
+    <!-- TARGET 6: CNC SPINDLE SPEED KNOB -->
     <a-entity id="target-6" mindar-image-target="targetIndex: 6">
-        <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
-        <a-entity id="pivot-6">
-            <a-cylinder radius="0.032" height="0.03" rotation="90 0 0" color="#222"></a-cylinder>
-            <a-box position="0 0.022 0.018" width="0.008" height="0.038" depth="0.012" color="#00e676"></a-box>
+        <a-entity position="0 0 0.01" scale="0.8 0.8 0.8">
+            <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
+            <a-entity id="pivot-6" rotation="0 0 0">
+                <a-cylinder radius="0.032" height="0.03" rotation="90 0 0" color="#222" metalness="0.5"></a-cylinder>
+                <a-box position="0 0.022 0.018" width="0.008" height="0.038" depth="0.012" color="#00e676"></a-box>
+            </a-entity>
         </a-entity>
     </a-entity>
 
+    <!-- TARGET 7: CNC CYCLE START BUTTON -->
     <a-entity id="target-7" mindar-image-target="targetIndex: 7">
-        <a-box width="0.065" height="0.065" depth="0.015" color="#222"></a-box>
-        <a-entity id="pivot-7" position="0 0 0.01">
-            <a-cylinder radius="0.026" height="0.02" rotation="90 0 0" color="#2ecc71"></a-cylinder>
+        <a-entity position="0 0 0.01" scale="0.8 0.8 0.8">
+            <a-box width="0.065" height="0.065" depth="0.015" color="#222"></a-box>
+            <a-entity id="pivot-7" position="0 0 0.01">
+                <a-cylinder radius="0.026" height="0.02" rotation="90 0 0" color="#2ecc71" metalness="0.3"></a-cylinder>
+            </a-entity>
         </a-entity>
     </a-entity>
 
@@ -116,56 +229,131 @@
 
 <script>
 const status = document.querySelector("#status");
+const actionBtn = document.querySelector("#actionBtn");
 let activeIndex = -1;
 
-const targetInfo = [
+// Configuration mapping target index to target name and action label
+const targetConfig = [
     { name: "GENERATOR: Fuel Cap", action: "Unscrew Cap" },
     { name: "GENERATOR: Throttle Lever", action: "Actuate Throttle" },
-    { name: "GENERATOR: Key Switch", action: "Turn Key" },
-    { name: "GENERATOR: Main Breaker", action: "Flip Switch" },
+    { name: "GENERATOR: Key Switch", action: "Turn Key Switch" },
+    { name: "GENERATOR: Main Breaker", action: "Flip Breaker" },
     { name: "CNC: Emergency Stop", action: "Release E-Stop" },
     { name: "CNC: Mode Selector", action: "Set Auto Mode" },
-    { name: "CNC: Spindle Speed", action: "Adjust Override" },
+    { name: "CNC: Spindle Speed", action: "Adjust Speed" },
     { name: "CNC: Cycle Start", action: "Press Cycle Start" }
 ];
 
+// Target found and lost event listeners
 for (let i = 0; i < 8; i++) {
     const el = document.querySelector(`#target-${i}`);
     if (!el) continue;
 
     el.addEventListener("targetFound", () => {
         activeIndex = i;
-        status.innerText = `${targetInfo[i].name} Detected!`;
-        document.querySelector("#actionBtn").innerText = targetInfo[i].action;
+        status.innerText = `${targetConfig[i].name} Detected!`;
+        actionBtn.innerText = targetConfig[i].action;
     });
 
     el.addEventListener("targetLost", () => {
         if (activeIndex === i) {
             activeIndex = -1;
-            status.innerText = "Scan any component on the Generator or CNC Panel...";
-            document.querySelector("#actionBtn").innerText = "Perform Action";
+            status.innerText = "Scan any cropped component target...";
+            actionBtn.innerText = "Run Action";
         }
     });
 }
 
+// Action triggers for each target animation
 function runTargetAction() {
-    if (activeIndex === -1) return;
+    if (activeIndex === -1) {
+        status.innerText = "Point camera at a component target first!";
+        return;
+    }
+
     const pivot = document.querySelector(`#pivot-${activeIndex}`);
     if (!pivot) return;
 
     pivot.removeAttribute("animation");
+    pivot.removeAttribute("animation__2");
 
     switch(activeIndex) {
-        case 0: pivot.setAttribute("animation", { property: "rotation", to: "0 -720 0", dur: 1800 }); break;
-        case 1: pivot.setAttribute("animation", { property: "rotation", from: "0 0 -25", to: "0 0 35", dur: 600, dir: "alternate", loop: 4 }); break;
-        case 2: pivot.setAttribute("animation", { property: "rotation", to: "0 0 -90", dur: 800 }); break;
-        case 3: pivot.setAttribute("animation", { property: "rotation", to: "35 0 0", dur: 600 }); break;
-        case 4: pivot.setAttribute("animation", { property: "rotation", to: "0 0 60", dur: 800 }); break;
-        case 5: pivot.setAttribute("animation", { property: "rotation", to: "0 0 45", dur: 800 }); break;
-        case 6: pivot.setAttribute("animation", { property: "rotation", to: "0 0 90", dur: 800 }); break;
-        case 7: pivot.setAttribute("animation", { property: "position", to: "0 0 -0.01", dur: 300, dir: "alternate", loop: 2 }); break;
+        case 0: // Generator Fuel Cap
+            pivot.setAttribute("animation", { property: "rotation", to: "0 -720 0", dur: 1800, easing: "easeInOutQuad" });
+            pivot.setAttribute("animation__2", { property: "position", to: "0 0 0.1", dur: 1800, easing: "easeInOutQuad" });
+            break;
+        case 1: // Generator Throttle
+            pivot.setAttribute("animation", { property: "rotation", from: "0 0 -25", to: "0 0 35", dur: 600, dir: "alternate", loop: 4, easing: "easeInOutSine" });
+            break;
+        case 2: // Generator Key Switch
+            pivot.setAttribute("animation", { property: "rotation", to: "0 0 -90", dur: 800, easing: "easeInOutQuad" });
+            break;
+        case 3: // Generator Breaker
+            pivot.setAttribute("animation", { property: "rotation", to: "35 0 0", dur: 600, easing: "easeInOutBack" });
+            break;
+        case 4: // CNC E-Stop
+            pivot.setAttribute("animation", { property: "rotation", to: "0 0 60", dur: 800, easing: "easeOutBack" });
+            pivot.setAttribute("animation__2", { property: "position", to: "0 0 0.04", dur: 800, easing: "easeOutBack" });
+            break;
+        case 5: // CNC Mode Selector
+            pivot.setAttribute("animation", { property: "rotation", to: "0 0 45", dur: 800, easing: "easeInOutQuad" });
+            break;
+        case 6: // CNC Spindle Speed
+            pivot.setAttribute("animation", { property: "rotation", to: "0 0 90", dur: 800, easing: "easeInOutQuad" });
+            break;
+        case 7: // CNC Cycle Start
+            pivot.setAttribute("animation", { property: "position", to: "0 0 -0.01", dur: 300, dir: "alternate", loop: 2, easing: "easeInOutSine" });
+            break;
     }
 }
+
+// Pinch-to-zoom logic for camera feed
+const zoomLabel = document.querySelector("#zoomLevel");
+let cameraTrack = null, zoomMin = 1, zoomMax = 1, zoomStep = 0.1;
+let currentZoom = 1, pinchStartDistance = 0, pinchStartZoom = 1;
+
+function getCameraTrack() {
+    const video = document.querySelector("video");
+    if (!video || !video.srcObject) return;
+    const tracks = video.srcObject.getVideoTracks();
+    if (!tracks.length) return;
+    cameraTrack = tracks[0];
+    const caps = cameraTrack.getCapabilities ? cameraTrack.getCapabilities() : {};
+    if (caps.zoom) {
+        zoomMin = Number(caps.zoom.min ?? 1);
+        zoomMax = Number(caps.zoom.max ?? 1);
+        zoomStep = Number(caps.zoom.step ?? 0.1);
+    }
+}
+
+async function setCameraZoom(value) {
+    if (!cameraTrack || !cameraTrack.applyConstraints) return;
+    const caps = cameraTrack.getCapabilities();
+    if (!caps.zoom) return;
+    currentZoom = Math.max(Number(caps.zoom.min ?? 1), Math.min(Number(caps.zoom.max ?? value), value));
+    try {
+        await cameraTrack.applyConstraints({advanced: [{zoom: currentZoom}]});
+        zoomLabel.textContent = currentZoom.toFixed(1) + "×";
+    } catch(e) {}
+}
+
+document.addEventListener("touchstart", e => {
+    if (e.touches.length === 2) {
+        pinchStartDistance = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+        pinchStartZoom = currentZoom;
+    }
+}, {passive: true});
+
+document.addEventListener("touchmove", e => {
+    if (e.touches.length !== 2 || zoomMax <= zoomMin || !pinchStartDistance) return;
+    e.preventDefault();
+    const dist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+    let z = Math.round((pinchStartZoom * (dist / pinchStartDistance)) / zoomStep) * zoomStep;
+    setCameraZoom(z);
+}, {passive: false});
+
+setTimeout(getCameraTrack, 1500);
 </script>
+
 </body>
 </html>
