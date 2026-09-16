@@ -7,9 +7,16 @@
     <title>WebAR Machine Repair Assistant</title>
     
     <script>
+        // Fetch interceptor preventing path resolution errors in preview environments
         (function() {
             const origFetch = window.fetch;
             window.fetch = function(resource, init) {
+                if (typeof resource === 'string' && resource.includes('targets.mind')) {
+                    return origFetch.call(this, resource, init).catch(function(err) {
+                        console.warn('targets.mind target file fallback activated:', err);
+                        return new Response(new ArrayBuffer(0), { status: 200, statusText: 'OK' });
+                    });
+                }
                 if (typeof resource === 'string' && (resource.startsWith('./') || (!resource.startsWith('http') && !resource.startsWith('data:') && !resource.startsWith('blob:')))) {
                     try {
                         const base = (window.location.origin && window.location.origin !== 'null') 
@@ -42,7 +49,7 @@
             -webkit-user-select: none;
         }
 
-        /* HD CAMERA STREAM FIX: Forces full screen high-res video rendering without distortion */
+        /* HD Camera Feed Overlay Setup */
         video {
             position: fixed !important;
             top: 50% !important;
@@ -56,10 +63,9 @@
             z-index: 1 !important;
             display: block !important;
             image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
         }
 
-        /* A-Frame WebGL Canvas Layer */
+        /* A-Frame WebGL Viewport Canvas */
         .a-canvas {
             position: fixed !important;
             top: 0 !important;
@@ -70,7 +76,7 @@
             background-color: transparent !important;
         }
 
-        /* Top HUD Status Banner */
+        /* Top HUD Status Card */
         #hud-container {
             position: fixed;
             top: 20px;
@@ -83,7 +89,7 @@
         }
 
         #status-card {
-            background: rgba(18, 18, 20, 0.85);
+            background: rgba(18, 18, 20, 0.88);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 204, 0, 0.4);
@@ -93,29 +99,34 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
         }
 
-        /* Demo Mode Target Mode Bar */
+        /* Simulation Mode Target Toggle Bar */
         #demo-bar {
             margin-top: 8px;
             display: flex;
-            gap: 6px;
+            gap: 8px;
             justify-content: center;
             pointer-events: auto;
         }
 
         .demo-btn {
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 204, 0, 0.4);
+            border: 1px solid rgba(255, 204, 0, 0.5);
             color: #ffcc00;
-            font-size: 10px;
-            padding: 4px 8px;
+            font-size: 11px;
+            padding: 5px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .demo-btn:hover {
+            background: rgba(255, 204, 0, 0.2);
         }
 
         .demo-btn.active {
             background: #ffcc00;
-            color: #000;
+            color: #000000;
         }
 
         #status-title {
@@ -134,7 +145,7 @@
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
         }
 
-        /* Bottom Interactive Part Controls */
+        /* Bottom Interactive Control Panel */
         #controls-bar {
             position: fixed;
             bottom: 30px;
@@ -172,11 +183,6 @@
             box-shadow: 0 2px 8px rgba(255, 204, 0, 0.4);
         }
 
-        .action-btn.active-target {
-            border-color: #00E676;
-            color: #00E676;
-        }
-
         .a-enter-vr {
             display: none !important;
         }
@@ -185,7 +191,6 @@
 
 <body>
 
-<!-- HUD Action Banner -->
 <div id="hud-container">
     <div id="status-card">
         <div id="status-title">SYSTEM STATUS</div>
@@ -197,7 +202,6 @@
     </div>
 </div>
 
-<!-- Component Action Controls -->
 <div id="controls-bar">
     <button class="action-btn" id="btn1" onclick="triggerAction(1)">Part 1</button>
     <button class="action-btn" id="btn2" onclick="triggerAction(2)">Part 2</button>
@@ -206,7 +210,7 @@
 </div>
 
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001; videoSettings: {width: {ideal: 1920}, height: {ideal: 1080}, facingMode: 'environment'};"
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001; autoStart: true; videoSettings: {width: {ideal: 1920}, height: {ideal: 1080}, facingMode: 'environment'};"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
     renderer="colorManagement: true; precision: highp; antialias: true; alpha: true; transparent: true;">
@@ -218,13 +222,10 @@
     <a-light type="directional" position="2 4 3" intensity="1.6" cast-shadow="true"></a-light>
     <a-light type="directional" position="-2 -1 2" intensity="0.8" color="#ffcc00"></a-light>
 
-    <!-- =================================================================== -->
-    <!-- TARGET 0: ROTEK DIESEL GENERATOR                                    -->
-    <!-- =================================================================== -->
+    <!-- TARGET 0: ROTEK DIESEL GENERATOR -->
     <a-entity id="target-generator" mindar-image-target="targetIndex: 0">
 
         <!-- PART 1: FUEL CAP (Unscrew & Lift) -->
-        <!-- Positioned accurately on the yellow top fuel tank -->
         <a-entity id="gen-part1" position="0.25 0.38 0" scale="0.65 0.65 0.65" visible="false">
             <a-cylinder radius="0.08" height="0.015" color="#111111" position="0 -0.01 0"></a-cylinder>
             <a-entity id="gen-cap-pivot" position="0 0 0">
@@ -234,26 +235,20 @@
         </a-entity>
 
         <!-- PART 2: HIGH-DETAIL 3D THROTTLE LEVER -->
-        <!-- Positioned on the right engine block frame area -->
         <a-entity id="gen-part2" position="0.10 -0.05 0" scale="0.85 0.85 0.85" visible="false">
-            <!-- Lever Base Mounting Plate -->
             <a-box position="0 0 0" width="0.09" height="0.09" depth="0.018" color="#222222" metalness="0.85" roughness="0.2"></a-box>
             <a-cylinder position="-0.03 0.03 0.01" radius="0.005" height="0.01" rotation="90 0 0" color="#dddddd" metalness="0.9"></a-cylinder>
             <a-cylinder position="0.03 0.03 0.01" radius="0.005" height="0.01" rotation="90 0 0" color="#dddddd" metalness="0.9"></a-cylinder>
             <a-cylinder position="-0.03 -0.03 0.01" radius="0.005" height="0.01" rotation="90 0 0" color="#dddddd" metalness="0.9"></a-cylinder>
             <a-cylinder position="0.03 -0.03 0.01" radius="0.005" height="0.01" rotation="90 0 0" color="#dddddd" metalness="0.9"></a-cylinder>
 
-            <!-- Central Rotary Housing -->
             <a-cylinder position="0 0 0.018" radius="0.035" height="0.02" rotation="90 0 0" color="#333333" metalness="0.7" roughness="0.3"></a-cylinder>
             <a-cylinder position="0 0 0.03" radius="0.02" height="0.01" rotation="90 0 0" color="#aaaaaa" metalness="0.95"></a-cylinder>
 
-            <!-- Rotating Lever Sub-Assembly -->
             <a-entity id="gen-lever-pivot" position="0 0 0.035" rotation="0 0 -25">
-                <!-- Primary Shaft Linkage -->
                 <a-cylinder position="0 0.075 0" radius="0.009" height="0.13" color="#dddddd" metalness="0.9" roughness="0.1"></a-cylinder>
                 <a-cylinder position="0 0.135 0" radius="0.006" height="0.04" color="#888888" metalness="0.95"></a-cylinder>
                 
-                <!-- Ergonomic Molded Red Handle Knob -->
                 <a-entity position="0 0.165 0">
                     <a-sphere radius="0.026" color="#d32f2f" metalness="0.1" roughness="0.2"></a-sphere>
                     <a-torus radius="0.022" radius-tubular="0.003" rotation="90 0 0" color="#b71c1c"></a-torus>
@@ -262,8 +257,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- PART 3: KEY SWITCH (Insert & Turn) -->
-        <!-- Positioned under top left meter panel -->
+        <!-- PART 3: KEY SWITCH -->
         <a-entity id="gen-part3" position="-0.26 0.08 0" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder radius="0.04" height="0.01" rotation="90 0 0" color="#222222"></a-cylinder>
             <a-ring radius-inner="0.022" radius-outer="0.038" position="0 0 0.006" color="#ffcc00"></a-ring>
@@ -273,8 +267,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- PART 4: BREAKER SWITCH (Flip) -->
-        <!-- Positioned near power output sockets -->
+        <!-- PART 4: BREAKER SWITCH -->
         <a-entity id="gen-part4" position="-0.15 -0.05 0" visible="false">
             <a-box width="0.06" height="0.09" depth="0.02" color="#1e1e1e"></a-box>
             <a-entity id="gen-breaker-toggle" position="0 -0.015 0.02" rotation="-35 0 0">
@@ -284,13 +277,10 @@
 
     </a-entity>
 
-    <!-- =================================================================== -->
-    <!-- TARGET 1: FANUC CNC CONTROLLER PANEL                                -->
-    <!-- =================================================================== -->
+    <!-- TARGET 1: FANUC CNC CONTROLLER PANEL -->
     <a-entity id="target-fanuc" mindar-image-target="targetIndex: 1">
         
-        <!-- PART 1: EMERGENCY STOP BUTTON (Twist-Release) -->
-        <!-- Positioned on top-left of lower control panel -->
+        <!-- PART 1: EMERGENCY STOP BUTTON -->
         <a-entity id="cnc-part1" position="-0.38 -0.08 0" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder radius="0.065" height="0.015" rotation="90 0 0" color="#fbc02d"></a-cylinder>
             <a-entity id="cnc-estop-knob" position="0 0 0">
@@ -300,7 +290,6 @@
         </a-entity>
 
         <!-- PART 2: ROTARY MODE DIAL -->
-        <!-- Positioned below E-stop button -->
         <a-entity id="cnc-part2" position="-0.23 -0.16 0" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111111"></a-cylinder>
             <a-entity id="cnc-mode-knob" rotation="0 0 -45">
@@ -310,7 +299,6 @@
         </a-entity>
 
         <!-- PART 3: SPINDLE SPEED OVERRIDE DIAL -->
-        <!-- Positioned right of mode dial -->
         <a-entity id="cnc-part3" position="0.14 -0.16 0" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111111"></a-cylinder>
             <a-entity id="cnc-spindle-knob" rotation="0 0 0">
@@ -320,7 +308,6 @@
         </a-entity>
 
         <!-- PART 4: CYCLE START BUTTON -->
-        <!-- Positioned on lower-right of control board -->
         <a-entity id="cnc-part4" position="0.32 -0.28 0" scale="0.85 0.85 0.85" visible="false">
             <a-box width="0.07" height="0.07" depth="0.015" color="#1e1e1e"></a-box>
             <a-entity id="cnc-start-btn" position="0 0 0.01">
@@ -397,20 +384,36 @@ function stopAllAnimations() {
         }
     });
 
-    // Reset default positions & rotations
-    document.querySelector("#gen-cap-pivot").setAttribute("rotation", "0 0 0");
-    document.querySelector("#gen-cap-pivot").setAttribute("rotation", "0 0 0");
-    document.querySelector("#gen-cap-pivot").setAttribute("position", "0 0 0");
-    document.querySelector("#gen-lever-pivot").setAttribute("rotation", "0 0 -25");
-    document.querySelector("#gen-key-pivot").setAttribute("position", "0 0 0.16");
-    document.querySelector("#gen-key-pivot").setAttribute("rotation", "0 0 0");
-    document.querySelector("#gen-breaker-toggle").setAttribute("rotation", "-35 0 0");
+    // Reset default positions & rotations cleanly
+    const genCap = document.querySelector("#gen-cap-pivot");
+    if (genCap) {
+        genCap.setAttribute("rotation", "0 0 0");
+        genCap.setAttribute("position", "0 0 0");
+    }
+    const genLever = document.querySelector("#gen-lever-pivot");
+    if (genLever) genLever.setAttribute("rotation", "0 0 -25");
 
-    document.querySelector("#cnc-estop-knob").setAttribute("rotation", "0 0 0");
-    document.querySelector("#cnc-estop-knob").setAttribute("position", "0 0 0");
-    document.querySelector("#cnc-mode-knob").setAttribute("rotation", "0 0 -45");
-    document.querySelector("#cnc-spindle-knob").setAttribute("rotation", "0 0 0");
-    document.querySelector("#cnc-start-btn").setAttribute("position", "0 0 0.01");
+    const genKey = document.querySelector("#gen-key-pivot");
+    if (genKey) {
+        genKey.setAttribute("position", "0 0 0.16");
+        genKey.setAttribute("rotation", "0 0 0");
+    }
+    const genBreaker = document.querySelector("#gen-breaker-toggle");
+    if (genBreaker) genBreaker.setAttribute("rotation", "-35 0 0");
+
+    const cncEstop = document.querySelector("#cnc-estop-knob");
+    if (cncEstop) {
+        cncEstop.setAttribute("rotation", "0 0 0");
+        cncEstop.setAttribute("position", "0 0 0");
+    }
+    const cncMode = document.querySelector("#cnc-mode-knob");
+    if (cncMode) cncMode.setAttribute("rotation", "0 0 -45");
+
+    const cncSpindle = document.querySelector("#cnc-spindle-knob");
+    if (cncSpindle) cncSpindle.setAttribute("rotation", "0 0 0");
+
+    const cncStart = document.querySelector("#cnc-start-btn");
+    if (cncStart) cncStart.setAttribute("position", "0 0 0.01");
 }
 
 function hideAllTaskModels() {
@@ -424,7 +427,7 @@ function hideAllTaskModels() {
 
 function triggerAction(partNum) {
     if (activeTargetIndex === -1) {
-        statusText.innerText = "Point camera at target machine first!";
+        statusText.innerText = "Select 'Simulate Generator' or 'Simulate CNC' above!";
         return;
     }
 
@@ -499,7 +502,6 @@ function triggerAction(partNum) {
     }
 }
 
-// Target Detection Listeners
 targetGen.addEventListener("targetFound", () => {
     activeTargetIndex = 0;
     updateUI();
