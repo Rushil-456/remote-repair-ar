@@ -57,6 +57,15 @@
             box-sizing: border-box;
         }
 
+
+        #zoomLevel {
+            position: fixed; right: 12px; top: 52px; z-index: 100;
+            padding: 6px 9px; border-radius: 8px;
+            background: rgba(0,0,0,.55); color: #ffcc00;
+            border: 1px solid rgba(255,204,0,.55);
+            font: bold 12px Arial, sans-serif; pointer-events: none;
+        }
+
         #controls {
             position: fixed;
             bottom: 25px;
@@ -100,6 +109,7 @@
 <body>
 
 <div id="status">Scanning for machine targets...</div>
+<div id="zoomLevel">1.0×</div>
 
 <div id="controls">
     <button class="btn" id="btn1" onclick="runTask(1)">Part 1</button>
@@ -128,49 +138,39 @@
     <a-entity id="target-generator" mindar-image-target="targetIndex: 0">
 
         <!-- Fuel Cap -->
-        <a-entity id="gen-task1" position="0.00 0.32 0.01" scale="0.60 0.60 0.60" visible="false">
+        <a-entity id="gen-task1" position="-0.20 0.29 0.01" scale="0.60 0.60 0.60" visible="false">
             <a-cylinder radius="0.075" height="0.015" color="#111" position="0 -0.01 0"></a-cylinder>
             <a-entity id="gen-cap-pivot" position="0 0 0">
                 <a-cylinder radius="0.07" height="0.03" color="#ffa700" metalness="0.7" roughness="0.3"></a-cylinder>
                 <a-box position="0 0.02 0" width="0.12" height="0.015" depth="0.025" color="#222"></a-box>
-                <a-torus radius="0.10" radius-tubular="0.004" color="#ffcc00" position="0 0 0.03"
-                         animation="property: rotation; to: 0 360 0; dur: 1800; loop: true; easing: linear"></a-torus>
-                <a-cone radius-bottom="0.025" radius-top="0" height="0.06" color="#ffcc00"
-                        position="0 0.13 0.02" rotation="0 0 180"
-                        animation="property: position; dir: alternate; dur: 700; loop: true; to: 0 0.16 0.02"></a-cone>
             </a-entity>
         </a-entity>
 
         <!-- Throttle Control Lever -->
-        <a-entity id="gen-task2" position="0.22 -0.05 0.03" scale="0.70 0.70 0.70" visible="false">
+        <a-entity id="gen-task2" position="0.27 -0.02 0.03" scale="0.70 0.70 0.70" visible="false">
             <a-box position="0 0 0" width="0.09" height="0.08" depth="0.02" color="#222"></a-box>
             <a-cylinder position="0 0 0.015" radius="0.03" height="0.02" rotation="90 0 0" color="#888" metalness="0.8"></a-cylinder>
             <a-entity id="gen-lever-pivot" position="0 0 0.02" rotation="0 0 -25">
                 <a-box position="0 0.08 0" width="0.018" height="0.15" depth="0.018" color="#dddddd" metalness="0.9"></a-box>
                 <a-sphere position="0 0.16 0" radius="0.03" color="#d32f2f" roughness="0.2"></a-sphere>
-                <a-cone radius-bottom="0.02" radius-top="0" height="0.07" color="#ffcc00"
-                        position="0.11 0.08 0.02" rotation="0 0 -90"></a-cone>
             </a-entity>
         </a-entity>
 
         <!-- Ignition Key Switch -->
-        <a-entity id="gen-task3" position="-0.22 -0.05 0.03" scale="0.80 0.80 0.80" visible="false">
+        <a-entity id="gen-task3" position="0.18 -0.10 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-cylinder radius="0.04" height="0.01" rotation="90 0 0" color="#333"></a-cylinder>
             <a-ring radius-inner="0.02" radius-outer="0.038" position="0 0 0.006" color="#ffcc00"></a-ring>
             <a-entity id="gen-key-pivot" position="0 0 0.18">
                 <a-box position="0 0 -0.06" width="0.006" height="0.015" depth="0.10" color="#cccccc" metalness="0.95"></a-box>
                 <a-cylinder position="0 0 0.01" radius="0.028" height="0.008" rotation="90 0 0" color="#ff9800"></a-cylinder>
-                <a-torus radius="0.07" radius-tubular="0.0035" color="#ffcc00" position="0 0 0.02"></a-torus>
             </a-entity>
         </a-entity>
 
         <!-- Breaker Switch -->
-        <a-entity id="gen-task4" position="0.00 -0.15 0.03" visible="false">
+        <a-entity id="gen-task4" position="-0.10 0.00 0.03" visible="false">
             <a-box width="0.06" height="0.09" depth="0.02" color="#1e1e1e"></a-box>
             <a-entity id="gen-breaker-toggle" position="0 -0.015 0.02" rotation="-35 0 0">
                 <a-box position="0 0.018 0.01" width="0.02" height="0.035" depth="0.02" color="#ffb300" metalness="0.4"></a-box>
-                <a-cone radius-bottom="0.02" radius-top="0" height="0.07" color="#ffcc00"
-                        position="0.10 0.02 0.02" rotation="0 0 -90"></a-cone>
             </a-entity>
         </a-entity>
 
@@ -182,43 +182,37 @@
     <a-entity id="target-fanuc" mindar-image-target="targetIndex: 1">
         
         <!-- Emergency Stop Button -->
-        <a-entity id="cnc-task1" position="-0.28 -0.18 0.03" scale="0.80 0.80 0.80" visible="false">
+        <a-entity id="cnc-task1" position="-0.34 -0.12 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-cylinder radius="0.06" height="0.015" rotation="90 0 0" color="#ffeb3b"></a-cylinder>
             <a-entity id="cnc-estop-knob" position="0 0 0">
                 <a-cylinder radius="0.048" height="0.035" rotation="90 0 0" color="#d32f2f" metalness="0.2"></a-cylinder>
                 <a-torus radius="0.05" radius-tubular="0.004" color="#b71c1c"></a-torus>
-                <a-torus radius="0.075" radius-tubular="0.0035" color="#ffcc00" position="0 0 0.02"
-                         animation="property: rotation; to: 0 360 0; dur: 1600; loop: true; easing: linear"></a-torus>
             </a-entity>
         </a-entity>
 
         <!-- Rotary Mode Selector Knob -->
-        <a-entity id="cnc-task2" position="-0.10 -0.18 0.03" scale="0.80 0.80 0.80" visible="false">
+        <a-entity id="cnc-task2" position="-0.10 -0.30 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
             <a-entity id="cnc-mode-knob" rotation="0 0 -45">
                 <a-cylinder radius="0.032" height="0.03" rotation="90 0 0" color="#222" metalness="0.5"></a-cylinder>
                 <a-box position="0 0.022 0.018" width="0.008" height="0.038" depth="0.012" color="#ffffff"></a-box>
-                <a-torus radius="0.07" radius-tubular="0.0035" color="#ffcc00" position="0 0 0.018"></a-torus>
             </a-entity>
         </a-entity>
 
         <!-- Spindle Speed Override Knob -->
-        <a-entity id="cnc-task3" position="0.10 -0.18 0.03" scale="0.80 0.80 0.80" visible="false">
+        <a-entity id="cnc-task3" position="0.12 -0.25 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
             <a-entity id="cnc-spindle-knob" rotation="0 0 0">
                 <a-cylinder radius="0.032" height="0.03" rotation="90 0 0" color="#222" metalness="0.5"></a-cylinder>
                 <a-box position="0 0.022 0.018" width="0.008" height="0.038" depth="0.012" color="#00e676"></a-box>
-                <a-cone radius-bottom="0.02" radius-top="0" height="0.07" color="#ffcc00"
-                        position="0.10 0.01 0.02" rotation="0 0 -90"></a-cone>
             </a-entity>
         </a-entity>
 
         <!-- Illuminated Cycle Start Button -->
-        <a-entity id="cnc-task4" position="-0.28 -0.32 0.03" scale="0.80 0.80 0.80" visible="false">
+        <a-entity id="cnc-task4" position="0.19 -0.29 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-box width="0.065" height="0.065" depth="0.015" color="#222"></a-box>
             <a-entity id="cnc-start-btn" position="0 0 0.01">
                 <a-cylinder radius="0.026" height="0.02" rotation="90 0 0" color="#2ecc71" metalness="0.3"></a-cylinder>
-                <a-ring radius-inner="0.035" radius-outer="0.045" color="#ffcc00" position="0 0 0.022"></a-ring>
             </a-entity>
         </a-entity>
 
@@ -311,16 +305,16 @@ function runTask(taskNum) {
             status.innerText = "ACTION: UNSCREW FUEL CAP";
             document.querySelector("#gen-task1").setAttribute("visible", "true");
             document.querySelector("#gen-cap-pivot").setAttribute("animation", {
-                property: "rotation", to: "0 -720 0", dur: 1800, easing: "easeInOutQuad"
+                property: "rotation", to: "0 -1080 0", dur: 2200, easing: "easeInOutQuad"
             });
             document.querySelector("#gen-cap-pivot").setAttribute("animation__2", {
-                property: "position", to: "0 0.13 0", dur: 1800, easing: "easeInOutQuad"
+                property: "position", to: "0 0.15 0", dur: 2200, easing: "easeInOutQuad"
             });
         } else if (taskNum === 2) {
             status.innerText = "ACTION: ACTUATE THROTTLE LEVER";
             document.querySelector("#gen-task2").setAttribute("visible", "true");
             document.querySelector("#gen-lever-pivot").setAttribute("animation", {
-                property: "rotation", from: "0 0 -25", to: "0 0 35", dur: 750, dir: "alternate", loop: 2, easing: "easeInOutSine"
+                property: "rotation", from: "0 0 -25", to: "0 0 35", dur: 800, dir: "alternate", loop: 3, easing: "easeInOutSine"
             });
         } else if (taskNum === 3) {
             status.innerText = "ACTION: INSERT & TURN IGNITION KEY";
@@ -373,6 +367,72 @@ function runTask(taskNum) {
         }
     }
 }
+
+
+/* PINCH-TO-ZOOM: uses the phone camera's native zoom if supported */
+const zoomLabel = document.querySelector("#zoomLevel");
+let cameraTrack = null, zoomMin = 1, zoomMax = 1, zoomStep = 0.1;
+let currentZoom = 1, pinchStartDistance = 0, pinchStartZoom = 1;
+
+function getCameraTrack() {
+    const video = document.querySelector("video");
+    if (!video || !video.srcObject) return;
+    const tracks = video.srcObject.getVideoTracks();
+    if (!tracks.length) return;
+    const track = tracks[0];
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    if (caps.zoom) {
+        cameraTrack = track;
+        zoomMin = Number(caps.zoom.min ?? 1);
+        zoomMax = Number(caps.zoom.max ?? 1);
+        zoomStep = Number(caps.zoom.step ?? .1);
+        currentZoom = Math.max(zoomMin, Math.min(currentZoom, zoomMax));
+        setCameraZoom(currentZoom);
+    }
+}
+
+async function setCameraZoom(value) {
+    if (!cameraTrack || !cameraTrack.applyConstraints) return;
+    const caps = cameraTrack.getCapabilities();
+    if (!caps.zoom) return;
+    value = Math.max(Number(caps.zoom.min ?? 1),
+                     Math.min(Number(caps.zoom.max ?? value), value));
+    currentZoom = value;
+    try {
+        await cameraTrack.applyConstraints({advanced: [{zoom: currentZoom}]});
+        zoomLabel.textContent = currentZoom.toFixed(1) + "×";
+    } catch(e) {
+        console.log("Camera zoom unavailable:", e);
+    }
+}
+
+function touchDistance(a,b) {
+    return Math.hypot(b.clientX-a.clientX, b.clientY-a.clientY);
+}
+
+document.addEventListener("touchstart", e => {
+    if (e.touches.length === 2) {
+        pinchStartDistance = touchDistance(e.touches[0], e.touches[1]);
+        pinchStartZoom = currentZoom;
+    }
+}, {passive:true});
+
+document.addEventListener("touchmove", e => {
+    if (e.touches.length !== 2 || zoomMax <= zoomMin || !pinchStartDistance) return;
+    e.preventDefault();
+    const scale = touchDistance(e.touches[0], e.touches[1]) / pinchStartDistance;
+    let z = pinchStartZoom * scale;
+    z = Math.round(z / zoomStep) * zoomStep;
+    setCameraZoom(z);
+}, {passive:false});
+
+document.addEventListener("touchend", e => {
+    if (e.touches.length < 2) pinchStartDistance = 0;
+}, {passive:true});
+
+setTimeout(getCameraTrack, 1000);
+setTimeout(getCameraTrack, 2500);
+setTimeout(getCameraTrack, 4000);
 
 // TARGET LISTENERS
 targetGen.addEventListener("targetFound", () => {
