@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Machine Remote AR Repair System</title>
+    <title>Multi-Machine AR Assistant</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -14,6 +14,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            background-color: #000;
         }
 
         #status {
@@ -22,12 +23,14 @@
             left: 0;
             width: 100%;
             text-align: center;
-            color: white;
+            color: #ffffff;
             font-family: Arial, sans-serif;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            text-shadow: 0 2px 5px black;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.8);
             z-index: 100;
+            padding: 0 10px;
+            box-sizing: border-box;
         }
 
         #controls {
@@ -37,7 +40,7 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             z-index: 100;
             padding: 0 10px;
             box-sizing: border-box;
@@ -47,9 +50,9 @@
             background: rgba(0, 0, 0, 0.85);
             color: #ffcc00;
             border: 2px solid #ffcc00;
-            padding: 10px 14px;
+            padding: 10px 12px;
             font-family: Arial, sans-serif;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
@@ -69,7 +72,7 @@
 
 <body>
 
-<div id="status">Point camera at target machine</div>
+<div id="status">Scanning for machine targets...</div>
 
 <div id="controls">
     <button class="btn" id="btn1" onclick="runTask(1)">Task 1</button>
@@ -79,7 +82,7 @@
 </div>
 
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001;"
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001; warmupTolerance: 5; missTolerance: 5;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
     renderer="colorManagement: true; precision: highp; antialias: true;">
@@ -87,7 +90,7 @@
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
     <!-- LIGHTING -->
-    <a-light type="ambient" color="#ffffff" intensity="2.0"></a-light>
+    <a-light type="ambient" color="#ffffff" intensity="2.5"></a-light>
     <a-light type="directional" position="1 2 2" intensity="1.5"></a-light>
 
     <!-- ================================================= -->
@@ -98,15 +101,15 @@
         <a-entity id="gen-task1" position="-0.20 0.28 0.02" scale="0.6 0.6 0.6" visible="false">
             <a-entity id="gen-cap-pivot" position="0 0 0">
                 <a-cylinder radius="0.065" height="0.025" color="#ffcc00"></a-cylinder>
-                <a-cylinder position="0 0.015 0" radius="0.04" height="0.01" color="#222"></a-cylinder>
+                <a-cylinder position="0 0.015 0" radius="0.04" height="0.01" color="#222222"></a-cylinder>
             </a-entity>
         </a-entity>
 
         <!-- Generator Task 2: Lever -->
         <a-entity id="gen-task2" position="0.12 -0.09 0.08" scale="0.7 0.7 0.7" visible="false">
-            <a-entity id="gen-lever-pivot" rotation="0 0 -25">
+            <a-entity id="gen-lever-pivot" position="0 0 0" rotation="0 0 -25">
                 <a-box position="0 0.07 0" width="0.025" height="0.14" depth="0.025" color="#ffcc00"></a-box>
-                <a-sphere position="0 0.19 0" radius="0.032" color="#333"></a-sphere>
+                <a-sphere position="0 0.19 0" radius="0.032" color="#333333"></a-sphere>
             </a-entity>
         </a-entity>
 
@@ -131,34 +134,34 @@
     <!-- ================================================= -->
     <a-entity id="target-fanuc" mindar-image-target="targetIndex: 1">
         
-        <!-- CNC Task 1: Emergency Stop Release (Top Left) -->
-        <a-entity id="cnc-task1" position="-0.33 -0.09 0.05" scale="0.8 0.8 0.8" visible="false">
+        <!-- CNC Task 1: Emergency Stop Release (Top Left of Lower Panel) -->
+        <a-entity id="cnc-task1" position="-0.38 -0.08 0.05" scale="0.8 0.8 0.8" visible="false">
             <a-entity id="cnc-estop-knob" position="0 0 0">
                 <a-cylinder radius="0.045" height="0.03" rotation="90 0 0" color="#e74c3c"></a-cylinder>
                 <a-torus radius="0.048" radius-tubular="0.005" color="#ffcc00"></a-torus>
             </a-entity>
         </a-entity>
 
-        <!-- CNC Task 2: Mode Selector Knob (Center Left) -->
-        <a-entity id="cnc-task2" position="-0.20 -0.16 0.05" scale="0.8 0.8 0.8" visible="false">
+        <!-- CNC Task 2: Mode Selector Knob (Center Left Dial) -->
+        <a-entity id="cnc-task2" position="-0.23 -0.16 0.05" scale="0.8 0.8 0.8" visible="false">
             <a-entity id="cnc-mode-knob" rotation="0 0 -45">
-                <a-cylinder radius="0.03" height="0.025" rotation="90 0 0" color="#222"></a-cylinder>
+                <a-cylinder radius="0.03" height="0.025" rotation="90 0 0" color="#222222"></a-cylinder>
                 <a-box position="0 0.02 0.015" width="0.008" height="0.035" depth="0.01" color="#ffcc00"></a-box>
             </a-entity>
         </a-entity>
 
-        <!-- CNC Task 3: Spindle Speed Knob (Center Right) -->
-        <a-entity id="cnc-task3" position="0.18 -0.16 0.05" scale="0.8 0.8 0.8" visible="false">
+        <!-- CNC Task 3: Spindle Speed Knob (Center Right Dial) -->
+        <a-entity id="cnc-task3" position="0.14 -0.16 0.05" scale="0.8 0.8 0.8" visible="false">
             <a-entity id="cnc-spindle-knob" rotation="0 0 0">
-                <a-cylinder radius="0.03" height="0.025" rotation="90 0 0" color="#222"></a-cylinder>
+                <a-cylinder radius="0.03" height="0.025" rotation="90 0 0" color="#222222"></a-cylinder>
                 <a-box position="0 0.02 0.015" width="0.008" height="0.035" depth="0.01" color="#00e676"></a-box>
             </a-entity>
         </a-entity>
 
         <!-- CNC Task 4: Cycle Start Button (Bottom Left Green Button) -->
-        <a-entity id="cnc-task4" position="-0.31 -0.37 0.05" scale="0.8 0.8 0.8" visible="false">
+        <a-entity id="cnc-task4" position="-0.30 -0.38 0.05" scale="0.8 0.8 0.8" visible="false">
             <a-entity id="cnc-start-btn" position="0 0 0">
-                <a-cylinder radius="0.025" height="0.02" rotation="90 0 0" color="#2ecc71"></a-cylinder>
+                <a-cylinder radius="0.028" height="0.02" rotation="90 0 0" color="#2ecc71"></a-cylinder>
             </a-entity>
         </a-entity>
 
@@ -176,7 +179,24 @@ const btn2 = document.querySelector("#btn2");
 const btn3 = document.querySelector("#btn3");
 const btn4 = document.querySelector("#btn4");
 
-let activeTargetIndex = -1; // -1: none, 0: Generator, 1: FANUC CNC
+let activeTargetIndex = -1;
+
+// Force camera HD Focus
+async function enforceHDVideo() {
+    try {
+        const videoEl = document.querySelector("video");
+        if (videoEl && videoEl.srcObject) {
+            const track = videoEl.srcObject.getVideoTracks()[0];
+            if (track) {
+                await track.applyConstraints({
+                    advanced: [{ focusMode: "continuous" }]
+                });
+            }
+        }
+    } catch (err) {
+        console.log("Autofocus constraint applied or not supported directly.");
+    }
+}
 
 function updateUI() {
     if (activeTargetIndex === 0) {
@@ -200,7 +220,37 @@ function updateUI() {
     }
 }
 
+function stopAllAnimations() {
+    const animElements = [
+        "#gen-cap-pivot", "#gen-lever-pivot", "#gen-key-pivot", "#gen-breaker-toggle",
+        "#cnc-estop-knob", "#cnc-mode-knob", "#cnc-spindle-knob", "#cnc-start-btn"
+    ];
+
+    animElements.forEach(selector => {
+        const el = document.querySelector(selector);
+        if (el) {
+            el.removeAttribute("animation");
+            el.removeAttribute("animation__2");
+        }
+    });
+
+    // Reset default positions/rotations
+    document.querySelector("#gen-cap-pivot").setAttribute("rotation", "0 0 0");
+    document.querySelector("#gen-cap-pivot").setAttribute("position", "0 0 0");
+    document.querySelector("#gen-lever-pivot").setAttribute("rotation", "0 0 -25");
+    document.querySelector("#gen-key-pivot").setAttribute("position", "0 0 0.18");
+    document.querySelector("#gen-key-pivot").setAttribute("rotation", "0 0 0");
+    document.querySelector("#gen-breaker-toggle").setAttribute("rotation", "-35 0 0");
+
+    document.querySelector("#cnc-estop-knob").setAttribute("rotation", "0 0 0");
+    document.querySelector("#cnc-estop-knob").setAttribute("position", "0 0 0");
+    document.querySelector("#cnc-mode-knob").setAttribute("rotation", "0 0 -45");
+    document.querySelector("#cnc-spindle-knob").setAttribute("rotation", "0 0 0");
+    document.querySelector("#cnc-start-btn").setAttribute("position", "0 0 0");
+}
+
 function hideAllTaskModels() {
+    stopAllAnimations();
     ["gen-task1", "gen-task2", "gen-task3", "gen-task4",
      "cnc-task1", "cnc-task2", "cnc-task3", "cnc-task4"].forEach(id => {
         const el = document.querySelector("#" + id);
@@ -220,21 +270,36 @@ function runTask(taskNum) {
         // GENERATOR TASKS
         if (taskNum === 1) {
             status.innerText = "GEN TASK 1: UNSCREW FUEL CAP";
-            const el = document.querySelector("#gen-task1");
-            el.setAttribute("visible", "true");
-            document.querySelector("#gen-cap-pivot").setAttribute("animation", "property: rotation; to: 0 -1080 0; dur: 2500");
+            document.querySelector("#gen-task1").setAttribute("visible", "true");
+            document.querySelector("#gen-cap-pivot").setAttribute("animation", {
+                property: "rotation", to: "0 -1080 0", dur: 2500, easing: "easeInOutQuad"
+            });
+            document.querySelector("#gen-cap-pivot").setAttribute("animation__2", {
+                property: "position", to: "0 0.15 0", dur: 2500, easing: "easeInOutQuad"
+            });
         } else if (taskNum === 2) {
             status.innerText = "GEN TASK 2: ACTUATE LEVER";
             document.querySelector("#gen-task2").setAttribute("visible", "true");
-            document.querySelector("#gen-lever-pivot").setAttribute("animation", "property: rotation; from: 0 0 -25; to: 0 0 35; dur: 1000; loop: 2; dir: alternate");
+            document.querySelector("#gen-lever-pivot").setAttribute("animation", {
+                property: "rotation", from: "0 0 -25", to: "0 0 35", dur: 1000, dir: "alternate", loop: 2, easing: "easeInOutSine"
+            });
         } else if (taskNum === 3) {
             status.innerText = "GEN TASK 3: TURN STARTER KEY";
             document.querySelector("#gen-task3").setAttribute("visible", "true");
-            document.querySelector("#gen-key-pivot").setAttribute("animation", "property: rotation; to: 0 0 -90; dur: 1200");
+            document.querySelector("#gen-key-pivot").setAttribute("animation", {
+                property: "position", to: "0 0 0.01", dur: 1000, easing: "easeOutQuad"
+            });
+            setTimeout(() => {
+                document.querySelector("#gen-key-pivot").setAttribute("animation__2", {
+                    property: "rotation", to: "0 0 -90", dur: 1000, easing: "easeInOutQuad"
+                });
+            }, 1000);
         } else if (taskNum === 4) {
             status.innerText = "GEN TASK 4: FLIP BREAKER SWITCH";
             document.querySelector("#gen-task4").setAttribute("visible", "true");
-            document.querySelector("#gen-breaker-toggle").setAttribute("animation", "property: rotation; to: 35 0 0; dur: 800");
+            document.querySelector("#gen-breaker-toggle").setAttribute("animation", {
+                property: "rotation", to: "35 0 0", dur: 800, easing: "easeInOutBack"
+            });
         }
     } 
     else if (activeTargetIndex === 1) {
@@ -242,11 +307,11 @@ function runTask(taskNum) {
         if (taskNum === 1) {
             status.innerText = "CNC TASK 1: TWIST & RELEASE E-STOP";
             document.querySelector("#cnc-task1").setAttribute("visible", "true");
-            document.querySelector("#cnc-estop-knob").setAttribute("animation__rotate", {
+            document.querySelector("#cnc-estop-knob").setAttribute("animation", {
                 property: "rotation", to: "0 0 90", dur: 1000, easing: "easeOutQuad"
             });
-            document.querySelector("#cnc-estop-knob").setAttribute("animation__pull", {
-                property: "position", to: "0 0 0.03", dur: 1000, easing: "easeOutQuad"
+            document.querySelector("#cnc-estop-knob").setAttribute("animation__2", {
+                property: "position", to: "0 0 0.04", dur: 1000, easing: "easeOutQuad"
             });
         } else if (taskNum === 2) {
             status.innerText = "CNC TASK 2: SELECT AUTO/EDIT MODE";
@@ -264,7 +329,7 @@ function runTask(taskNum) {
             status.innerText = "CNC TASK 4: PRESS CYCLE START";
             document.querySelector("#cnc-task4").setAttribute("visible", "true");
             document.querySelector("#cnc-start-btn").setAttribute("animation", {
-                property: "position", to: "0 0 -0.015", dur: 400, dir: "alternate", loop: 2
+                property: "position", to: "0 0 -0.02", dur: 350, dir: "alternate", loop: 2, easing: "easeInOutSine"
             });
         }
     }
@@ -273,6 +338,7 @@ function runTask(taskNum) {
 // TARGET EVENTS
 targetGen.addEventListener("targetFound", () => {
     activeTargetIndex = 0;
+    enforceHDVideo();
     updateUI();
 });
 targetGen.addEventListener("targetLost", () => {
@@ -283,6 +349,7 @@ targetGen.addEventListener("targetLost", () => {
 
 targetFanuc.addEventListener("targetFound", () => {
     activeTargetIndex = 1;
+    enforceHDVideo();
     updateUI();
 });
 targetFanuc.addEventListener("targetLost", () => {
