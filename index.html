@@ -19,7 +19,6 @@
             background: transparent !important;
         }
 
-        /* FORCE HIGH-RES CAMERA FEED TO FILL VIEWPORT CLEARLY */
         video {
             position: fixed !important;
             top: 0 !important;
@@ -56,7 +55,6 @@
             padding: 0 10px;
             box-sizing: border-box;
         }
-
 
         #zoomLevel {
             position: fixed; right: 12px; top: 52px; z-index: 100;
@@ -118,7 +116,6 @@
     <button class="btn" id="btn4" onclick="runTask(4)">Part 4</button>
 </div>
 
-<!-- A-SCENE: INCLUDES HIGH-RESOLUTION VIDEO CONSTRAINTS -->
 <a-scene
     mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001; videoSettings: {width: {ideal: 1920}, height: {ideal: 1080}, facingMode: 'environment'};"
     vr-mode-ui="enabled: false"
@@ -137,8 +134,8 @@
     <!-- ================================================= -->
     <a-entity id="target-generator" mindar-image-target="targetIndex: 0">
 
-        <!-- Fuel Cap -->
-        <a-entity id="gen-task1" position="-0.20 0.29 0.01" scale="0.60 0.60 0.60" visible="false">
+        <!-- Top Tank Cap (Shifted Up & Centered on Tank Top) -->
+        <a-entity id="gen-task1" position="0.00 0.42 0.02" scale="0.60 0.60 0.60" visible="false">
             <a-cylinder radius="0.075" height="0.015" color="#111" position="0 -0.01 0"></a-cylinder>
             <a-entity id="gen-cap-pivot" position="0 0 0">
                 <a-cylinder radius="0.07" height="0.03" color="#ffa700" metalness="0.7" roughness="0.3"></a-cylinder>
@@ -146,8 +143,8 @@
             </a-entity>
         </a-entity>
 
-        <!-- Throttle Control Lever -->
-        <a-entity id="gen-task2" position="0.27 -0.02 0.03" scale="0.70 0.70 0.70" visible="false">
+        <!-- Throttle Lever (Right Side Control Assembly) -->
+        <a-entity id="gen-task2" position="0.35 0.05 0.03" scale="0.70 0.70 0.70" visible="false">
             <a-box position="0 0 0" width="0.09" height="0.08" depth="0.02" color="#222"></a-box>
             <a-cylinder position="0 0 0.015" radius="0.03" height="0.02" rotation="90 0 0" color="#888" metalness="0.8"></a-cylinder>
             <a-entity id="gen-lever-pivot" position="0 0 0.02" rotation="0 0 -25">
@@ -156,8 +153,8 @@
             </a-entity>
         </a-entity>
 
-        <!-- Ignition Key Switch -->
-        <a-entity id="gen-task3" position="0.18 -0.10 0.03" scale="0.80 0.80 0.80" visible="false">
+        <!-- Ignition Switch (Lower Left Control Cluster) -->
+        <a-entity id="gen-task3" position="-0.32 -0.15 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-cylinder radius="0.04" height="0.01" rotation="90 0 0" color="#333"></a-cylinder>
             <a-ring radius-inner="0.02" radius-outer="0.038" position="0 0 0.006" color="#ffcc00"></a-ring>
             <a-entity id="gen-key-pivot" position="0 0 0.18">
@@ -166,8 +163,8 @@
             </a-entity>
         </a-entity>
 
-        <!-- Breaker Switch -->
-        <a-entity id="gen-task4" position="-0.10 0.00 0.03" visible="false">
+        <!-- Main Circuit Breaker (Lower Right Power Box) -->
+        <a-entity id="gen-task4" position="0.15 -0.22 0.03" visible="false">
             <a-box width="0.06" height="0.09" depth="0.02" color="#1e1e1e"></a-box>
             <a-entity id="gen-breaker-toggle" position="0 -0.015 0.02" rotation="-35 0 0">
                 <a-box position="0 0.018 0.01" width="0.02" height="0.035" depth="0.02" color="#ffb300" metalness="0.4"></a-box>
@@ -181,8 +178,8 @@
     <!-- ================================================= -->
     <a-entity id="target-fanuc" mindar-image-target="targetIndex: 1">
         
-        <!-- Emergency Stop Button -->
-        <a-entity id="cnc-task1" position="-0.34 -0.12 0.03" scale="0.80 0.80 0.80" visible="false">
+        <!-- Emergency Stop Switch (Bottom Left Corner Safety Area) -->
+        <a-entity id="cnc-task1" position="-0.40 -0.35 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-cylinder radius="0.06" height="0.015" rotation="90 0 0" color="#ffeb3b"></a-cylinder>
             <a-entity id="cnc-estop-knob" position="0 0 0">
                 <a-cylinder radius="0.048" height="0.035" rotation="90 0 0" color="#d32f2f" metalness="0.2"></a-cylinder>
@@ -190,8 +187,8 @@
             </a-entity>
         </a-entity>
 
-        <!-- Rotary Mode Selector Knob -->
-        <a-entity id="cnc-task2" position="-0.10 -0.30 0.03" scale="0.80 0.80 0.80" visible="false">
+        <!-- Mode Selector Dial (Mid-Left Rotary Section) -->
+        <a-entity id="cnc-task2" position="-0.18 -0.12 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
             <a-entity id="cnc-mode-knob" rotation="0 0 -45">
                 <a-cylinder radius="0.032" height="0.03" rotation="90 0 0" color="#222" metalness="0.5"></a-cylinder>
@@ -199,8 +196,8 @@
             </a-entity>
         </a-entity>
 
-        <!-- Spindle Speed Override Knob -->
-        <a-entity id="cnc-task3" position="0.12 -0.25 0.03" scale="0.80 0.80 0.80" visible="false">
+        <!-- Spindle Override Knob (Mid-Right Override Bank) -->
+        <a-entity id="cnc-task3" position="0.18 -0.12 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-cylinder radius="0.045" height="0.01" rotation="90 0 0" color="#111"></a-cylinder>
             <a-entity id="cnc-spindle-knob" rotation="0 0 0">
                 <a-cylinder radius="0.032" height="0.03" rotation="90 0 0" color="#222" metalness="0.5"></a-cylinder>
@@ -208,8 +205,8 @@
             </a-entity>
         </a-entity>
 
-        <!-- Illuminated Cycle Start Button -->
-        <a-entity id="cnc-task4" position="0.19 -0.29 0.03" scale="0.80 0.80 0.80" visible="false">
+        <!-- Cycle Start Button (Bottom Right Operator Button Array) -->
+        <a-entity id="cnc-task4" position="0.38 -0.35 0.03" scale="0.80 0.80 0.80" visible="false">
             <a-box width="0.065" height="0.065" depth="0.015" color="#222"></a-box>
             <a-entity id="cnc-start-btn" position="0 0 0.01">
                 <a-cylinder radius="0.026" height="0.02" rotation="90 0 0" color="#2ecc71" metalness="0.3"></a-cylinder>
@@ -367,7 +364,6 @@ function runTask(taskNum) {
         }
     }
 }
-
 
 /* PINCH-TO-ZOOM: uses the phone camera's native zoom if supported */
 const zoomLabel = document.querySelector("#zoomLevel");
