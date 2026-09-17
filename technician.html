@@ -166,24 +166,34 @@ function initPeer() {
     peer = new Peer(roomId);
 
     peer.on('open', (id) => {
-        status.innerText = `Room: ${id} | Point camera at target machine`;
+        status.innerText = `Room Ready: ${id} | Point camera at target`;
+    });
+
+    peer.on('error', (err) => {
+        console.error("PeerJS Error:", err);
+        status.innerText = `Connection Error: ${err.type}`;
     });
 
     peer.on('connection', (conn) => {
         conn.on('data', (data) => {
-            if (data.type === 'RUN_TASK') {
-                runTask(data.taskNum);
-            }
+            if (data.type === 'RUN_TASK') runTask(data.taskNum);
         });
     });
 
     peer.on('call', (call) => {
         const sceneEl = document.querySelector('a-scene');
-        const canvas = sceneEl.canvas;
-        if (canvas) {
-            const stream = canvas.captureStream(30);
-            call.answer(stream);
-        }
+        
+        // Wait until canvas is initialized
+        const sendStream = () => {
+            const canvas = sceneEl.canvas;
+            if (canvas && canvas.captureStream) {
+                const stream = canvas.captureStream(30);
+                call.answer(stream);
+            } else {
+                setTimeout(sendStream, 500);
+            }
+        };
+        sendStream();
     });
 }
 
