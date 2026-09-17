@@ -182,17 +182,34 @@ function initPeer() {
 
     peer.on('call', (call) => {
         const sceneEl = document.querySelector('a-scene');
-        
-        // Wait until canvas is initialized
+
         const sendStream = () => {
-            const canvas = sceneEl.canvas;
-            if (canvas && canvas.captureStream) {
-                const stream = canvas.captureStream(30);
+            // Get MindAR's camera video element and A-Frame canvas
+            const videoEl = document.querySelector('video');
+            const canvasEl = sceneEl.canvas;
+
+            if (videoEl && canvasEl) {
+                // Create a off-screen canvas to merge video feed + 3D AR canvas
+                const mergeCanvas = document.createElement('canvas');
+                mergeCanvas.width = canvasEl.width || 640;
+                mergeCanvas.height = canvasEl.height || 480;
+                const ctx = mergeCanvas.getContext('2d');
+
+                // Draw frames continuously at 30 FPS
+                function drawFrame() {
+                    ctx.drawImage(videoEl, 0, 0, mergeCanvas.width, mergeCanvas.height);
+                    ctx.drawImage(canvasEl, 0, 0, mergeCanvas.width, mergeCanvas.height);
+                    requestAnimationFrame(drawFrame);
+                }
+                drawFrame();
+
+                const stream = mergeCanvas.captureStream(30);
                 call.answer(stream);
             } else {
                 setTimeout(sendStream, 500);
             }
         };
+
         sendStream();
     });
 }
