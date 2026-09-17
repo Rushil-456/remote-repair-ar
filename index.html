@@ -147,15 +147,16 @@
     <a-entity id="cnc-target" mindar-image-target="targetIndex: 1">
 
         <!-- TASK 5: EMERGENCY STOP BUTTON -->
-        <a-entity id="task5-estop" position="-0.32 -0.15 0.05" scale="0.9 0.9 0.9" visible="false">
-            <a-cylinder position="0 0 0" radius="0.055" height="0.01" rotation="90 0 0" color="#e6b800" material="metalness: 0.2; roughness: 0.4"></a-cylinder>
-            <a-torus position="0 0 0.005" radius="0.05" radius-tubular="0.005" color="#111111"></a-torus>
-            <a-cylinder position="0 0 0.012" radius="0.038" height="0.015" rotation="90 0 0" color="#888888" material="metalness: 0.8; roughness: 0.2"></a-cylinder>
+        <a-entity id="task5-estop" position="-0.32 -0.15 0.08" scale="0.95 0.95 0.95" visible="false">
+            <a-cylinder position="0 0 0" radius="0.058" height="0.012" rotation="90 0 0" color="#ffcc00" material="metalness: 0.1; roughness: 0.3"></a-cylinder>
+            <a-torus position="0 0 0.006" radius="0.05" radius-tubular="0.006" color="#ffdd00" material="metalness: 0.2; roughness: 0.3"></a-torus>
+            
+            <a-cylinder position="0 0 0.015" radius="0.038" height="0.018" rotation="90 0 0" color="#aaaaaa" material="metalness: 0.9; roughness: 0.2"></a-cylinder>
 
-            <a-entity id="estop-cap" position="0 0 0.02" rotation="0 0 0">
-                <a-cylinder position="0 0 0.01" radius="0.032" height="0.02" rotation="90 0 0" color="#bb0000" material="roughness: 0.3"></a-cylinder>
-                <a-sphere position="0 0 0.022" radius="0.04" scale="1 1 0.4" color="#dd0000" material="metalness: 0.1; roughness: 0.2"></a-sphere>
-                <a-ring position="0 0 0.031" radius-inner="0.015" radius-outer="0.025" color="#ffffff" opacity="0.8"></a-ring>
+            <a-entity id="estop-cap" position="0 0 0.03" rotation="0 0 0">
+                <a-cylinder position="0 0 0.012" radius="0.034" height="0.024" rotation="90 0 0" color="#cc0000" material="roughness: 0.2"></a-cylinder>
+                <a-sphere position="0 0 0.026" radius="0.042" scale="1 1 0.45" color="#ee0000" material="metalness: 0.1; roughness: 0.2"></a-sphere>
+                <a-ring position="0 0 0.036" radius-inner="0.015" radius-outer="0.026" color="#ffffff" opacity="0.9"></a-ring>
             </a-entity>
         </a-entity>
 
@@ -172,7 +173,7 @@
         </a-entity>
 
         <!-- TASK 7: CYCLE START BUTTON -->
-        <a-entity id="task7-cyclestart" position="-0.35 -0.46 0.05" scale="0.85 0.85 0.85" visible="false">
+        <a-entity id="task7-cyclestart" position="-0.30 -0.46 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder position="0 0 0" radius="0.035" height="0.012" rotation="90 0 0" color="#666666" material="metalness: 0.8; roughness: 0.2"></a-cylinder>
             <a-cylinder position="0 0 0.005" radius="0.028" height="0.01" rotation="90 0 0" color="#111111"></a-cylinder>
 
@@ -183,7 +184,7 @@
         </a-entity>
 
         <!-- TASK 8: FEED OVERRIDE DIAL -->
-        <a-entity id="task8-feed" position="0.06 -0.24 0.05" scale="0.85 0.85 0.85" visible="false">
+        <a-entity id="task8-feed" position="0.01 -0.24 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-circle radius="0.045" color="#1b1b1b" material="roughness: 0.6"></a-circle>
             <a-ring position="0 0 0.002" radius-inner="0.035" radius-outer="0.042" color="#cccccc"></a-ring>
             
@@ -271,7 +272,7 @@ function resetAllTasks() {
     
     estopCap.removeAttribute("animation__press");
     estopCap.removeAttribute("animation__twist");
-    estopCap.setAttribute("position", "0 0 0.02");
+    estopCap.setAttribute("position", "0 0 0.03");
     estopCap.setAttribute("rotation", "0 0 0");
 
     modeKnob.removeAttribute("animation__turn");
@@ -325,19 +326,19 @@ function runTask(taskNumber) {
         
         estopCap.setAttribute("animation__press", {
             property: "position",
-            to: "0 0 -0.005",
-            dur: 400,
-            easing: "easeInCubic"
+            to: "0 0 0.005",
+            dur: 450,
+            easing: "easeInQuad"
         });
 
         const twistTimer = setTimeout(() => {
             estopCap.setAttribute("animation__twist", {
                 property: "rotation",
                 to: "0 0 45",
-                dur: 300,
+                dur: 350,
                 easing: "easeInOutQuad"
             });
-        }, 400);
+        }, 450);
         activeTimers.push(twistTimer);
     }
     else if (taskNumber === 6) {
@@ -358,11 +359,11 @@ function runTask(taskNumber) {
         cyclestartBtn.setAttribute("animation__press", {
             property: "position",
             from: "0 0 0.012",
-            to: "0 0 0.002",
-            dur: 250,
+            to: "0 0 0.001",
+            dur: 300,
             dir: "alternate",
             loop: 2,
-            easing: "easeInOutSine"
+            easing: "easeInOutElastic"
         });
     }
     else if (taskNumber === 8) {
