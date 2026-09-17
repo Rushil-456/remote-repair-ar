@@ -31,7 +31,7 @@
 </head>
 <body>
 
-<div id="status">Connecting session...</div>
+<div id="status">Starting camera & AR engine...</div>
 
 <div id="controls">
     <button id="btn-t1" class="btn" onclick="runTask(1)">Task 1</button>
@@ -161,6 +161,34 @@ const feedDial = document.querySelector("#feed-dial");
 let activeTimers = [];
 let activeTarget = null;
 let peer = null;
+let compositedStream = null;
+
+function prepareStream() {
+    const sceneEl = document.querySelector('a-scene');
+    const videoEl = document.querySelector('video');
+    const canvasEl = sceneEl ? sceneEl.canvas : null;
+
+    if (videoEl && videoEl.readyState >= 2 && canvasEl) {
+        const mergeCanvas = document.createElement('canvas');
+        mergeCanvas.width = videoEl.videoWidth || 1280;
+        mergeCanvas.height = videoEl.videoHeight || 720;
+
+        const ctx = mergeCanvas.getContext('2d', { alpha: false });
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        function drawLoop() {
+            ctx.drawImage(videoEl, 0, 0, mergeCanvas.width, mergeCanvas.height);
+            ctx.drawImage(canvasEl, 0, 0, mergeCanvas.width, mergeCanvas.height);
+            requestAnimationFrame(drawLoop);
+        }
+        drawLoop();
+
+        compositedStream = mergeCanvas.captureStream(30);
+        return true;
+    }
+    return false;
+}
 
 function initPeer() {
     peer = new Peer(roomId);
@@ -181,46 +209,21 @@ function initPeer() {
     });
 
     peer.on('call', (call) => {
-        const sceneEl = document.querySelector('a-scene');
+        const answerCall = () => {
+            if (!compositedStream) {
+                prepareStream();
+            }
 
-        const sendStream = () => {
-            const videoEl = document.querySelector('video');
-            const canvasEl = sceneEl.canvas;
-
-            // Ensure video element has loaded its actual stream dimensions
-            if (videoEl && videoEl.videoWidth > 0 && canvasEl) {
-                const mergeCanvas = document.createElement('canvas');
-
-                // Set canvas size to MATCH actual native camera resolution
-                mergeCanvas.width = videoEl.videoWidth;
-                mergeCanvas.height = videoEl.videoHeight;
-
-                const ctx = mergeCanvas.getContext('2d', { alpha: false });
-                
-                // Enable maximum sharpness on canvas draw operations
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-
-                function drawFrame() {
-                    // Draw full resolution camera feed
-                    ctx.drawImage(videoEl, 0, 0, mergeCanvas.width, mergeCanvas.height);
-                    // Overlay 3D AR canvas on top matching exact size
-                    ctx.drawImage(canvasEl, 0, 0, mergeCanvas.width, mergeCanvas.height);
-                    requestAnimationFrame(drawFrame);
-                }
-                drawFrame();
-
-                // Capture stream at crisp native resolution
-                const stream = mergeCanvas.captureStream(30);
-                call.answer(stream);
+            if (compositedStream && compositedStream.getVideoTracks().length > 0) {
+                call.answer(compositedStream);
             } else {
-                setTimeout(sendStream, 300);
+                setTimeout(answerCall, 200);
             }
         };
-
-        sendStream();
+        answerCall();
     });
 }
+
 function showButtonsForTarget(targetType) {
     [1, 2, 3, 4].forEach(num => {
         document.querySelector(`#btn-t${num}`).style.display = (targetType === 'generator') ? 'block' : 'none';
@@ -361,7 +364,17 @@ targetCNC.addEventListener("targetLost", () => {
     }
 });
 
-window.addEventListener("load", initPeer);
+document.addEventListener("DOMContentLoaded", () => {
+    const sceneEl = document.querySelector('a-scene');
+    if (sceneEl) {
+        sceneEl.addEventListener('arReady', () => {
+            prepareStream();
+            initPeer();
+        });
+    } else {
+        initPeer();
+    }
+});
 </script>
 
 </body>
