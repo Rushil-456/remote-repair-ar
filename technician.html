@@ -230,940 +230,214 @@ const feedDial = document.querySelector("#feed-dial");
 
 let activeTimers = [];
 let activeTarget = null;
-
 let peer = null;
-let expertConnection = null;
-let cameraStream = null;
-let videoCall = null;
-
-
-/* =========================================================
-   CREATE CAMERA STREAM
-   ========================================================= */
-
-async function getCameraStream() {
-
-    try {
-
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: {
-                    ideal: "environment"
-                },
-                width: {
-                    ideal: 1280
-                },
-                height: {
-                    ideal: 720
-                },
-                frameRate: {
-                    ideal: 30,
-                    max: 30
-                }
-            },
-            audio: false
-        });
-
-        console.log("Camera stream ready:", cameraStream);
-
-        return true;
-
-    } catch (error) {
-
-        console.error("Camera error:", error);
-
-        status.innerText =
-            "Camera permission required";
-
-        return false;
-    }
-}
-
-
-/* =========================================================
-   PEERJS
-   ========================================================= */
 
 function initPeer() {
-
-    console.log("Starting PeerJS...");
-    console.log("Room:", roomId);
-
     peer = new Peer(roomId);
 
-    peer.on("open", function(id) {
-
-        console.log("Technician Peer ID:", id);
-
-        status.innerText =
-            "Room Ready | Point camera at target";
-
+    peer.on('open', (id) => {
+        status.innerText = `Room Ready: ${id} | Point camera at target`;
     });
 
-
-    /* =====================================================
-       EXPERT DATA CONNECTION
-       ===================================================== */
-
-    peer.on("connection", function(conn) {
-
-        console.log(
-            "Expert connected:",
-            conn.peer
-        );
-
-        expertConnection = conn;
-
-        conn.on("open", function() {
-
-            console.log(
-                "Expert data connection opened"
-            );
-
-        });
-
-
-        conn.on("data", function(data) {
-
-            console.log(
-                "Received:",
-                data
-            );
-
-            if (
-                data &&
-                data.type === "RUN_TASK"
-            ) {
-
-                runTask(data.taskNum);
-
-            }
-
-        });
-
-
-        conn.on("close", function() {
-
-            console.log(
-                "Expert disconnected"
-            );
-
-            expertConnection = null;
-
-        });
-
-
-        conn.on("error", function(error) {
-
-            console.error(
-                "Data connection error:",
-                error
-            );
-
-        });
-
+    peer.on('error', (err) => {
+        console.error("PeerJS Error:", err);
     });
 
-
-    /* =====================================================
-       INCOMING VIDEO CALL
-       ===================================================== */
-
-    peer.on("call", function(call) {
-
-        console.log(
-            "Incoming video call from:",
-            call.peer
-        );
-
-        if (!cameraStream) {
-
-            console.error(
-                "Camera stream is not ready"
-            );
-
-            call.close();
-
-            return;
-        }
-
-
-        console.log(
-            "Answering video call..."
-        );
-
-
-        videoCall = call;
-
-        call.answer(cameraStream);
-
-
-        call.on("close", function() {
-
-            console.log(
-                "Video call closed"
-            );
-
-            videoCall = null;
-
+    peer.on('connection', (conn) => {
+        conn.on('data', (data) => {
+            if (data.type === 'RUN_TASK') runTask(data.taskNum);
         });
-
-
-        call.on("error", function(error) {
-
-            console.error(
-                "Video call error:",
-                error
-            );
-
-        });
-
     });
 
-
-    /* =====================================================
-       PEER ERROR
-       ===================================================== */
-
-    peer.on("error", function(error) {
-
-        console.error(
-            "PeerJS error:",
-            error
-        );
-
-        if (error.type === "unavailable-id") {
-
-            status.innerText =
-                "Room already in use";
-
+    peer.on('call', (call) => {
+        const videoEl = document.querySelector('video');
+        if (videoEl && videoEl.srcObject) {
+            call.answer(videoEl.srcObject);
         } else {
-
-            status.innerText =
-                "Connection error";
-
+            setTimeout(() => {
+                const retryVideo = document.querySelector('video');
+                if (retryVideo && retryVideo.srcObject) {
+                    call.answer(retryVideo.srcObject);
+                }
+            }, 500);
         }
-
     });
-
 }
 
-
-/* =========================================================
-   AR BUTTONS
-   ========================================================= */
-
 function showButtonsForTarget(targetType) {
-
     const genBtns = [1, 2, 3, 4];
     const cncBtns = [5, 6, 7, 8];
 
-
-    genBtns.forEach(function(num) {
-
-        const btn =
-            document.querySelector("#btn-t" + num);
-
-        btn.style.display =
-            targetType === "generator"
-                ? "block"
-                : "none";
-
+    genBtns.forEach(num => {
+        document.querySelector(`#btn-t${num}`).style.display = (targetType === 'generator') ? 'block' : 'none';
     });
 
-
-    cncBtns.forEach(function(num) {
-
-        const btn =
-            document.querySelector("#btn-t" + num);
-
-        btn.style.display =
-            targetType === "cnc"
-                ? "block"
-                : "none";
-
+    cncBtns.forEach(num => {
+        document.querySelector(`#btn-t${num}`).style.display = (targetType === 'cnc') ? 'block' : 'none';
     });
-
 }
-
-
-/* =========================================================
-   CLEAR TIMERS
-   ========================================================= */
 
 function clearAllTimers() {
-
-    activeTimers.forEach(function(t) {
-
-        clearTimeout(t);
-
-    });
-
+    activeTimers.forEach(t => clearTimeout(t));
     activeTimers = [];
-
 }
-
-
-/* =========================================================
-   RESET TASKS
-   ========================================================= */
 
 function resetAllTasks() {
-
     clearAllTimers();
 
+    // Reset Generator Tasks
+    [task1Cap, task2Lever, task3Key, task4Breaker].forEach(el => el.setAttribute("visible", "false"));
+    
+    capPivot.removeAttribute("animation__rotate");
+    capPivot.removeAttribute("animation__lift");
+    capPivot.setAttribute("rotation", "0 0 0");
+    capPivot.setAttribute("position", "0 0 0");
 
-    // Generator
+    movingLever.removeAttribute("animation__pivot");
+    movingLever.setAttribute("rotation", "0 0 -25");
 
-    [
-        task1Cap,
-        task2Lever,
-        task3Key,
-        task4Breaker
+    keyPivot.removeAttribute("animation__insert");
+    keyPivot.removeAttribute("animation__turn");
+    keyPivot.setAttribute("position", "0 0 0.18");
+    keyPivot.setAttribute("rotation", "0 0 0");
 
-    ].forEach(function(el) {
+    breakerToggle.removeAttribute("animation__flip");
+    breakerToggle.setAttribute("rotation", "-35 0 0");
 
-        el.setAttribute(
-            "visible",
-            "false"
-        );
+    // Reset CNC Tasks
+    [task5Estop, task6Mode, task7CycleStart, task8Feed].forEach(el => el.setAttribute("visible", "false"));
+    
+    estopCap.removeAttribute("animation__press");
+    estopCap.removeAttribute("animation__twist");
+    estopCap.removeAttribute("animation__recoil");
+    estopCap.setAttribute("position", "0 0 0.03");
+    estopCap.setAttribute("rotation", "0 0 0");
 
-    });
+    modeKnob.removeAttribute("animation__turn");
+    modeKnob.setAttribute("rotation", "0 0 0");
 
+    cyclestartBtn.removeAttribute("animation__press");
+    cyclestartBtn.removeAttribute("animation__release");
+    cyclestartBtn.removeAttribute("animation__pulse");
+    cyclestartBtn.setAttribute("position", "0 0 0.012");
+    cyclestartBtn.setAttribute("scale", "1 1 1");
 
-    capPivot.removeAttribute(
-        "animation__rotate"
-    );
-
-    capPivot.removeAttribute(
-        "animation__lift"
-    );
-
-    capPivot.setAttribute(
-        "rotation",
-        "0 0 0"
-    );
-
-    capPivot.setAttribute(
-        "position",
-        "0 0 0"
-    );
-
-
-    movingLever.removeAttribute(
-        "animation__pivot"
-    );
-
-    movingLever.setAttribute(
-        "rotation",
-        "0 0 -25"
-    );
-
-
-    keyPivot.removeAttribute(
-        "animation__insert"
-    );
-
-    keyPivot.removeAttribute(
-        "animation__turn"
-    );
-
-    keyPivot.setAttribute(
-        "position",
-        "0 0 0.18"
-    );
-
-    keyPivot.setAttribute(
-        "rotation",
-        "0 0 0"
-    );
-
-
-    breakerToggle.removeAttribute(
-        "animation__flip"
-    );
-
-    breakerToggle.setAttribute(
-        "rotation",
-        "-35 0 0"
-    );
-
-
-    // CNC
-
-    [
-        task5Estop,
-        task6Mode,
-        task7CycleStart,
-        task8Feed
-
-    ].forEach(function(el) {
-
-        el.setAttribute(
-            "visible",
-            "false"
-        );
-
-    });
-
-
-    estopCap.removeAttribute(
-        "animation__press"
-    );
-
-    estopCap.removeAttribute(
-        "animation__twist"
-    );
-
-    estopCap.removeAttribute(
-        "animation__recoil"
-    );
-
-    estopCap.setAttribute(
-        "position",
-        "0 0 0.03"
-    );
-
-    estopCap.setAttribute(
-        "rotation",
-        "0 0 0"
-    );
-
-
-    modeKnob.removeAttribute(
-        "animation__turn"
-    );
-
-    modeKnob.setAttribute(
-        "rotation",
-        "0 0 0"
-    );
-
-
-    cyclestartBtn.removeAttribute(
-        "animation__press"
-    );
-
-    cyclestartBtn.removeAttribute(
-        "animation__release"
-    );
-
-    cyclestartBtn.removeAttribute(
-        "animation__pulse"
-    );
-
-    cyclestartBtn.setAttribute(
-        "position",
-        "0 0 0.012"
-    );
-
-    cyclestartBtn.setAttribute(
-        "scale",
-        "1 1 1"
-    );
-
-
-    feedDial.removeAttribute(
-        "animation__turn"
-    );
-
-    feedDial.setAttribute(
-        "rotation",
-        "0 0 -45"
-    );
-
+    feedDial.removeAttribute("animation__turn");
+    feedDial.setAttribute("rotation", "0 0 -45");
 }
 
-
-/* =========================================================
-   RUN TASK
-   ========================================================= */
-
 function runTask(taskNumber) {
-
     if (!activeTarget) {
-
-        status.innerText =
-            "Point camera at target machine first!";
-
+        status.innerText = "Point camera at target machine first!";
         return;
     }
 
-
     resetAllTasks();
 
-
-    /* TASK 1 */
-
     if (taskNumber === 1) {
-
-        status.innerText =
-            "TASK 1: UNSCREW FUEL CAP";
-
-        task1Cap.setAttribute(
-            "visible",
-            "true"
-        );
-
-        capPivot.setAttribute(
-            "animation__rotate",
-            {
-                property: "rotation",
-                to: "0 -1080 0",
-                dur: 3000,
-                easing: "easeInOutQuad"
-            }
-        );
-
-        capPivot.setAttribute(
-            "animation__lift",
-            {
-                property: "position",
-                to: "0 0.18 0",
-                dur: 3000,
-                easing: "easeInOutQuad"
-            }
-        );
-
-    }
-
-
-    /* TASK 2 */
-
+        status.innerText = "TASK 1: UNSCREW FUEL CAP";
+        task1Cap.setAttribute("visible", "true");
+        capPivot.setAttribute("animation__rotate", { property: "rotation", to: "0 -1080 0", dur: 3000, easing: "easeInOutQuad" });
+        capPivot.setAttribute("animation__lift", { property: "position", to: "0 0.18 0", dur: 3000, easing: "easeInOutQuad" });
+    } 
     else if (taskNumber === 2) {
-
-        status.innerText =
-            "TASK 2: ACTUATE LEVER & PIVOT";
-
-        task2Lever.setAttribute(
-            "visible",
-            "true"
-        );
-
-        movingLever.setAttribute(
-            "animation__pivot",
-            {
-                property: "rotation",
-                from: "0 0 -25",
-                to: "0 0 35",
-                dur: 1000,
-                easing: "easeInOutSine",
-                loop: 3,
-                dir: "alternate"
-            }
-        );
-
-    }
-
-
-    /* TASK 3 */
-
+        status.innerText = "TASK 2: ACTUATE LEVER & PIVOT";
+        task2Lever.setAttribute("visible", "true");
+        movingLever.setAttribute("animation__pivot", { property: "rotation", from: "0 0 -25", to: "0 0 35", dur: 1000, easing: "easeInOutSine", loop: 3, dir: "alternate" });
+    } 
     else if (taskNumber === 3) {
-
-        status.innerText =
-            "TASK 3: INSERT & TURN STARTER KEY";
-
-        task3Key.setAttribute(
-            "visible",
-            "true"
-        );
-
-        keyPivot.setAttribute(
-            "animation__insert",
-            {
-                property: "position",
-                to: "0 0 0.01",
-                dur: 1200,
-                easing: "easeOutQuad"
-            }
-        );
-
-        const turnTimer =
-            setTimeout(function() {
-
-                keyPivot.setAttribute(
-                    "animation__turn",
-                    {
-                        property: "rotation",
-                        to: "0 0 -90",
-                        dur: 1000,
-                        easing: "easeInOutQuad"
-                    }
-                );
-
-            }, 1200);
-
+        status.innerText = "TASK 3: INSERT & TURN STARTER KEY";
+        task3Key.setAttribute("visible", "true");
+        keyPivot.setAttribute("animation__insert", { property: "position", to: "0 0 0.01", dur: 1200, easing: "easeOutQuad" });
+        const turnTimer = setTimeout(() => {
+            keyPivot.setAttribute("animation__turn", { property: "rotation", to: "0 0 -90", dur: 1000, easing: "easeInOutQuad" });
+        }, 1200);
         activeTimers.push(turnTimer);
-
-    }
-
-
-    /* TASK 4 */
-
+    } 
     else if (taskNumber === 4) {
-
-        status.innerText =
-            "TASK 4: FLIP CIRCUIT BREAKER ON";
-
-        task4Breaker.setAttribute(
-            "visible",
-            "true"
-        );
-
-        breakerToggle.setAttribute(
-            "animation__flip",
-            {
-                property: "rotation",
-                to: "35 0 0",
-                dur: 1000,
-                easing: "easeInOutBack"
-            }
-        );
-
+        status.innerText = "TASK 4: FLIP CIRCUIT BREAKER ON";
+        task4Breaker.setAttribute("visible", "true");
+        breakerToggle.setAttribute("animation__flip", { property: "rotation", to: "35 0 0", dur: 1000, easing: "easeInOutBack" });
     }
-
-
-    /* TASK 5 */
-
     else if (taskNumber === 5) {
+        status.innerText = "TASK 5: PRESS & LOCK EMERGENCY STOP";
+        task5Estop.setAttribute("visible", "true");
+        estopCap.setAttribute("animation__press", { property: "position", from: "0 0 0.03", to: "0 0 -0.03", dur: 350, easing: "easeInQuad" });
 
-        status.innerText =
-            "TASK 5: PRESS & LOCK EMERGENCY STOP";
+        const twistTimer = setTimeout(() => {
+            estopCap.setAttribute("animation__twist", { property: "rotation", from: "0 0 0", to: "0 0 45", dur: 400, easing: "easeInOutCubic" });
+        }, 350);
 
-        task5Estop.setAttribute(
-            "visible",
-            "true"
-        );
+        const recoilTimer = setTimeout(() => {
+            estopCap.setAttribute("animation__recoil", { property: "position", from: "0 0 -0.03", to: "0 0 -0.015", dur: 180, easing: "easeOutBack" });
+        }, 750);
 
-        estopCap.setAttribute(
-            "animation__press",
-            {
-                property: "position",
-                from: "0 0 0.03",
-                to: "0 0 -0.03",
-                dur: 350,
-                easing: "easeInQuad"
-            }
-        );
-
-        const twistTimer =
-            setTimeout(function() {
-
-                estopCap.setAttribute(
-                    "animation__twist",
-                    {
-                        property: "rotation",
-                        from: "0 0 0",
-                        to: "0 0 45",
-                        dur: 400,
-                        easing: "easeInOutCubic"
-                    }
-                );
-
-            }, 350);
-
-
-        const recoilTimer =
-            setTimeout(function() {
-
-                estopCap.setAttribute(
-                    "animation__recoil",
-                    {
-                        property: "position",
-                        from: "0 0 -0.03",
-                        to: "0 0 -0.015",
-                        dur: 180,
-                        easing: "easeOutBack"
-                    }
-                );
-
-            }, 750);
-
-
-        activeTimers.push(
-            twistTimer,
-            recoilTimer
-        );
-
+        activeTimers.push(twistTimer, recoilTimer);
     }
-
-
-    /* TASK 6 */
-
     else if (taskNumber === 6) {
-
-        status.innerText =
-            "TASK 6: SELECT AUTO MODE";
-
-        task6Mode.setAttribute(
-            "visible",
-            "true"
-        );
-
-        modeKnob.setAttribute(
-            "animation__turn",
-            {
-                property: "rotation",
-                to: "0 0 -90",
-                dur: 900,
-                easing: "easeOutBack"
-            }
-        );
-
+        status.innerText = "TASK 6: SELECT AUTO MODE";
+        task6Mode.setAttribute("visible", "true");
+        modeKnob.setAttribute("animation__turn", { property: "rotation", to: "0 0 -90", dur: 900, easing: "easeOutBack" });
     }
-
-
-    /* TASK 7 */
-
     else if (taskNumber === 7) {
+        status.innerText = "TASK 7: PRESS CYCLE START";
+        task7CycleStart.setAttribute("visible", "true");
+        cyclestartBtn.setAttribute("animation__press", { property: "position", from: "0 0 0.012", to: "0 0 -0.040", dur: 250, easing: "easeInQuad" });
 
-        status.innerText =
-            "TASK 7: PRESS CYCLE START";
+        const releaseTimer = setTimeout(() => {
+            cyclestartBtn.setAttribute("animation__release", { property: "position", from: "0 0 -0.040", to: "0 0 0.012", dur: 300, easing: "easeOutBack" });
+        }, 450);
 
-        task7CycleStart.setAttribute(
-            "visible",
-            "true"
-        );
+        const scaleTimer = setTimeout(() => {
+            cyclestartBtn.setAttribute("animation__pulse", { property: "scale", from: "1 1 1", to: "1.15 1.15 1.15", dur: 200, dir: "alternate", loop: 2, easing: "easeInOutSine" });
+        }, 250);
 
-        cyclestartBtn.setAttribute(
-            "animation__press",
-            {
-                property: "position",
-                from: "0 0 0.012",
-                to: "0 0 -0.040",
-                dur: 250,
-                easing: "easeInQuad"
-            }
-        );
-
-
-        const releaseTimer =
-            setTimeout(function() {
-
-                cyclestartBtn.setAttribute(
-                    "animation__release",
-                    {
-                        property: "position",
-                        from: "0 0 -0.040",
-                        to: "0 0 0.012",
-                        dur: 300,
-                        easing: "easeOutBack"
-                    }
-                );
-
-            }, 450);
-
-
-        const scaleTimer =
-            setTimeout(function() {
-
-                cyclestartBtn.setAttribute(
-                    "animation__pulse",
-                    {
-                        property: "scale",
-                        from: "1 1 1",
-                        to: "1.15 1.15 1.15",
-                        dur: 200,
-                        dir: "alternate",
-                        loop: 2,
-                        easing: "easeInOutSine"
-                    }
-                );
-
-            }, 250);
-
-
-        activeTimers.push(
-            releaseTimer,
-            scaleTimer
-        );
-
+        activeTimers.push(releaseTimer, scaleTimer);
     }
-
-
-    /* TASK 8 */
-
     else if (taskNumber === 8) {
-
-        status.innerText =
-            "TASK 8: ADJUST FEED OVERRIDE";
-
-        task8Feed.setAttribute(
-            "visible",
-            "true"
-        );
-
-        feedDial.setAttribute(
-            "animation__turn",
-            {
-                property: "rotation",
-                from: "0 0 -45",
-                to: "0 0 115",
-                dur: 1400,
-                easing: "easeInOutCubic"
-            }
-        );
-
+        status.innerText = "TASK 8: ADJUST FEED OVERRIDE";
+        task8Feed.setAttribute("visible", "true");
+        feedDial.setAttribute("animation__turn", { property: "rotation", from: "0 0 -45", to: "0 0 115", dur: 1400, easing: "easeInOutCubic" });
     }
-
 }
 
-
-/* =========================================================
-   GENERATOR TARGET
-   ========================================================= */
-
-targetGen.addEventListener(
-    "targetFound",
-    function() {
-
-        activeTarget = "generator";
-
-        showButtonsForTarget(
-            "generator"
-        );
-
-        status.innerText =
-            "GENERATOR DETECTED: SELECT TASK";
-
+// Target Event Handlers
+targetGen.addEventListener("targetFound", () => {
+    activeTarget = "generator";
+    showButtonsForTarget("generator");
+    status.innerText = "GENERATOR DETECTED: SELECT TASK";
+});
+targetGen.addEventListener("targetLost", () => {
+    if (activeTarget === "generator") {
+        activeTarget = null;
+        showButtonsForTarget(null);
+        status.innerText = "Point camera at target machine";
+        resetAllTasks();
     }
-);
+});
 
-
-targetGen.addEventListener(
-    "targetLost",
-    function() {
-
-        if (
-            activeTarget === "generator"
-        ) {
-
-            activeTarget = null;
-
-            showButtonsForTarget(null);
-
-            status.innerText =
-                "Point camera at target machine";
-
-            resetAllTasks();
-
-        }
-
+targetCNC.addEventListener("targetFound", () => {
+    activeTarget = "cnc";
+    showButtonsForTarget("cnc");
+    status.innerText = "CNC MACHINE DETECTED: SELECT TASK";
+});
+targetCNC.addEventListener("targetLost", () => {
+    if (activeTarget === "cnc") {
+        activeTarget = null;
+        showButtonsForTarget(null);
+        status.innerText = "Point camera at target machine";
+        resetAllTasks();
     }
-);
+});
 
-
-/* =========================================================
-   CNC TARGET
-   ========================================================= */
-
-targetCNC.addEventListener(
-    "targetFound",
-    function() {
-
-        activeTarget = "cnc";
-
-        showButtonsForTarget(
-            "cnc"
-        );
-
-        status.innerText =
-            "CNC MACHINE DETECTED: SELECT TASK";
-
+document.addEventListener("DOMContentLoaded", () => {
+    const sceneEl = document.querySelector('a-scene');
+    if (sceneEl) {
+        sceneEl.addEventListener('arReady', initPeer);
+    } else {
+        initPeer();
     }
-);
-
-
-targetCNC.addEventListener(
-    "targetLost",
-    function() {
-
-        if (
-            activeTarget === "cnc"
-        ) {
-
-            activeTarget = null;
-
-            showButtonsForTarget(null);
-
-            status.innerText =
-                "Point camera at target machine";
-
-            resetAllTasks();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   START
-   ========================================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        const sceneEl =
-            document.querySelector("a-scene");
-
-
-        if (!sceneEl) {
-
-            console.error(
-                "A-Frame scene not found"
-            );
-
-            return;
-
-        }
-
-
-        /*
-         * MindAR must be ready before we start
-         * the remote connection.
-         */
-
-        sceneEl.addEventListener(
-            "arReady",
-            async function() {
-
-                console.log(
-                    "MindAR AR ready"
-                );
-
-
-                status.innerText =
-                    "Camera ready | Waiting for Expert...";
-
-
-                /*
-                 * Get the actual camera stream.
-                 */
-
-                const cameraReady =
-                    await getCameraStream();
-
-
-                if (!cameraReady) {
-
-                    return;
-
-                }
-
-
-                /*
-                 * Now start PeerJS.
-                 */
-
-                initPeer();
-
-            }
-        );
-
-    });
-
+});
 </script>
 
 </body>
