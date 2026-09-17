@@ -16,7 +16,7 @@
             flex: 1; background: #000; display: flex;
             justify-content: center; align-items: center; position: relative;
         }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        video { width: 100%; height: 100%; object-fit: contain; background: #000; }
         #sidebar {
             width: 360px; background: #1e293b;
             border-left: 1px solid #334155; padding: 1.5rem;
@@ -34,9 +34,9 @@
         .action-btn:hover { background: #f59e0b; color: #0f172a; }
         .status-badge {
             position: absolute; top: 15px; left: 15px;
-            background: rgba(15, 23, 42, 0.8); padding: 0.5rem 1rem;
+            background: rgba(15, 23, 42, 0.85); padding: 0.5rem 1rem;
             border-radius: 20px; border: 1px solid #334155;
-            font-size: 0.85rem; color: #10b981; font-weight: 600;
+            font-size: 0.85rem; color: #10b981; font-weight: 600; z-index: 10;
         }
     </style>
 </head>
@@ -44,7 +44,6 @@
 
 <div id="video-container">
     <div class="status-badge" id="connStatus">Status: Connecting...</div>
-    <!-- FIXED: Added autoplay, playsinline, and muted to allow video stream to display -->
     <video id="remoteVideo" autoplay playsinline muted></video>
 </div>
 
@@ -96,7 +95,7 @@ peer.on('open', (expertId) => {
         document.getElementById('connStatus').innerText = `Data Connection Failed!`;
     });
 
-    // Delay media call slightly to ensure target peer is listening
+    // Place video call to Technician
     setTimeout(() => {
         const call = peer.call(roomId, null);
         if (call) {
@@ -108,7 +107,7 @@ peer.on('open', (expertId) => {
                 };
             });
         }
-    }, 1000);
+    }, 1200);
 });
 
 function sendTask(taskNum) {
