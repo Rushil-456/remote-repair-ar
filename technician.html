@@ -253,15 +253,31 @@ function initPeer() {
     });
 }
 
-function startCallToExpert(expertPeerId) {
-    const videoEl = document.querySelector('video');
-    if (videoEl && videoEl.srcObject) {
-        peer.call(expertPeerId, videoEl.srcObject);
-    } else {
-        setTimeout(() => startCallToExpert(expertPeerId), 500);
+async function startCallToExpert(expertPeerId) {
+    try {
+        // Force high-definition constraints for the technician feed
+        const hdStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                facingMode: "environment" // Use rear camera
+            },
+            audio: false
+        });
+
+        peer.call(expertPeerId, hdStream);
+    } catch (err) {
+        console.warn("Could not get HD video stream, falling back to default A-Frame stream:", err);
+        
+        // Fallback to existing stream if HD constraints fail
+        const videoEl = document.querySelector('video');
+        if (videoEl && videoEl.srcObject) {
+            peer.call(expertPeerId, videoEl.srcObject);
+        } else {
+            setTimeout(() => startCallToExpert(expertPeerId), 500);
+        }
     }
 }
-
 function showButtonsForTarget(targetType) {
     const genBtns = [1, 2, 3, 4];
     const cncBtns = [5, 6, 7, 8];
