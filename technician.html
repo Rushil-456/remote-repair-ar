@@ -248,15 +248,29 @@ function initPeer() {
             if (data.type === 'RUN_TASK') runTask(data.taskNum);
         });
 
-        // Expert connected -> stream camera to expert peer
+        // Expert connected -> stream canvas + camera to expert peer
         startCallToExpert(conn.peer);
     });
 }
 
 function startCallToExpert(expertPeerId) {
-    const videoEl = document.querySelector('video');
-    if (videoEl && videoEl.srcObject) {
-        peer.call(expertPeerId, videoEl.srcObject);
+    const sceneEl = document.querySelector('a-scene');
+    const cameraVideo = document.querySelector('video');
+
+    if (sceneEl && sceneEl.canvas) {
+        // 1. Capture stream from WebGL canvas containing camera + 3D overlays
+        const canvasStream = sceneEl.canvas.captureStream(30);
+
+        // 2. Attach audio track from original camera/mic feed if present
+        if (cameraVideo && cameraVideo.srcObject) {
+            const audioTracks = cameraVideo.srcObject.getAudioTracks();
+            if (audioTracks.length > 0) {
+                canvasStream.addTrack(audioTracks[0]);
+            }
+        }
+
+        // 3. Initiate WebRTC Call with the combined AR stream
+        peer.call(expertPeerId, canvasStream);
     } else {
         setTimeout(() => startCallToExpert(expertPeerId), 500);
     }
