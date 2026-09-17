@@ -10,10 +10,10 @@ wss.on('connection', (ws) => {
 
         if (data.type === 'register-technician') {
             technicianWs = ws;
-            console.log('Technician (index.html) connected');
+            console.log('Technician active');
         } else if (data.type === 'register-expert') {
             expertWs = ws;
-            console.log('Remote Expert (expert.html) connected');
+            console.log('Remote Expert active');
         } else if (data.type === 'offer' || data.type === 'candidate-from-tech') {
             if (expertWs) expertWs.send(JSON.stringify(data));
         } else if (data.type === 'answer' || data.type === 'candidate-from-expert') {
