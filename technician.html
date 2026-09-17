@@ -66,15 +66,7 @@
         .a-enter-vr {
             display: none !important;
         }
-        video {
-    width: 100vw !important;
-    height: 100vh !important;
-    object-fit: cover !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: -2 !important;
-}
+        
     </style>
 </head>
 
@@ -97,7 +89,7 @@
 </div>
 
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 2; filterMinCF:0.0001; filterBeta: 0.001; uiLoading: no; resolution: 1280;"
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 2; filterMinCF:0.0001; filterBeta: 0.001;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
     renderer="colorManagement: true; precision: highp; antialias: true; preserveDrawingBuffer: true;">
