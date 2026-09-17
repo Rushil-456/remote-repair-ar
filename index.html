@@ -141,22 +141,18 @@
         </a-entity>
     </a-entity>
 
- <!-- ================================================= -->
+    <!-- ================================================= -->
     <!-- TARGET 1: CNC MACHINE                             -->
     <!-- ================================================= -->
     <a-entity id="cnc-target" mindar-image-target="targetIndex: 1">
 
-        <!-- TASK 5: EMERGENCY STOP BUTTON (Yellow Border, Pushed-Out Initial Z-Position for Better Visibility) -->
+        <!-- TASK 5: EMERGENCY STOP BUTTON -->
         <a-entity id="task5-estop" position="-0.32 -0.15 0.08" scale="0.95 0.95 0.95" visible="false">
-            <!-- Yellow Base Outer Guard -->
             <a-cylinder position="0 0 0" radius="0.058" height="0.012" rotation="90 0 0" color="#ffcc00" material="metalness: 0.1; roughness: 0.3"></a-cylinder>
-            <!-- Yellow Inner Rim (Replaced Black Ring) -->
             <a-torus position="0 0 0.006" radius="0.05" radius-tubular="0.006" color="#ffdd00" material="metalness: 0.2; roughness: 0.3"></a-torus>
             
-            <!-- Metallic Base Socket -->
             <a-cylinder position="0 0 0.015" radius="0.038" height="0.018" rotation="90 0 0" color="#aaaaaa" material="metalness: 0.9; roughness: 0.2"></a-cylinder>
 
-            <!-- 3D Red Mushroom Cap -->
             <a-entity id="estop-cap" position="0 0 0.03" rotation="0 0 0">
                 <a-cylinder position="0 0 0.012" radius="0.034" height="0.024" rotation="90 0 0" color="#cc0000" material="roughness: 0.2"></a-cylinder>
                 <a-sphere position="0 0 0.026" radius="0.042" scale="1 1 0.45" color="#ee0000" material="metalness: 0.1; roughness: 0.2"></a-sphere>
@@ -164,7 +160,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- TASK 6: MODE SELECTOR SWITCH (Kept Exact) -->
+        <!-- TASK 6: MODE SELECTOR SWITCH -->
         <a-entity id="task6-mode" position="-0.20 -0.23 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder position="0 0 0" radius="0.045" height="0.008" rotation="90 0 0" color="#222222" material="metalness: 0.5; roughness: 0.5"></a-cylinder>
             <a-ring position="0 0 0.005" radius-inner="0.032" radius-outer="0.042" color="#ffffff"></a-ring>
@@ -176,7 +172,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- TASK 7: CYCLE START BUTTON (Moved slightly right: X=-0.30) -->
+        <!-- TASK 7: CYCLE START BUTTON -->
         <a-entity id="task7-cyclestart" position="-0.30 -0.46 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-cylinder position="0 0 0" radius="0.035" height="0.012" rotation="90 0 0" color="#666666" material="metalness: 0.8; roughness: 0.2"></a-cylinder>
             <a-cylinder position="0 0 0.005" radius="0.028" height="0.01" rotation="90 0 0" color="#111111"></a-cylinder>
@@ -187,7 +183,7 @@
             </a-entity>
         </a-entity>
 
-        <!-- TASK 8: FEED OVERRIDE DIAL (Moved slightly left: X=0.01) -->
+        <!-- TASK 8: FEED OVERRIDE DIAL -->
         <a-entity id="task8-feed" position="0.01 -0.24 0.05" scale="0.85 0.85 0.85" visible="false">
             <a-circle radius="0.045" color="#1b1b1b" material="roughness: 0.6"></a-circle>
             <a-ring position="0 0 0.002" radius-inner="0.035" radius-outer="0.042" color="#cccccc"></a-ring>
@@ -200,6 +196,7 @@
         </a-entity>
 
     </a-entity>
+
 </a-scene>
 
 <script>
@@ -273,15 +270,15 @@ function resetAllTasks() {
     // Reset CNC Tasks
     [task5Estop, task6Mode, task7CycleStart, task8Feed].forEach(el => el.setAttribute("visible", "false"));
     
-   estopCap.removeAttribute("animation__press");
+    estopCap.removeAttribute("animation__press");
     estopCap.removeAttribute("animation__twist");
     estopCap.setAttribute("position", "0 0 0.03");
-    estopCap.setAttribute("rotation", "0 0 0");    
-    
+    estopCap.setAttribute("rotation", "0 0 0");
+
     modeKnob.removeAttribute("animation__turn");
     modeKnob.setAttribute("rotation", "0 0 0");
 
-   cyclestartBtn.removeAttribute("animation__press");
+    cyclestartBtn.removeAttribute("animation__press");
     cyclestartBtn.setAttribute("position", "0 0 0.012");
 
     feedDial.removeAttribute("animation__turn");
@@ -323,13 +320,10 @@ function runTask(taskNumber) {
         breakerToggle.setAttribute("animation__flip", { property: "rotation", to: "35 0 0", dur: 1000, easing: "easeInOutBack" });
     }
     // CNC Machine Tasks
-   // Inside runTask(taskNumber) function:
-
     else if (taskNumber === 5) {
         status.innerText = "TASK 5: PRESS & LOCK EMERGENCY STOP";
         task5Estop.setAttribute("visible", "true");
         
-        // Deep press towards the panel face
         estopCap.setAttribute("animation__press", {
             property: "position",
             to: "0 0 0.005",
@@ -337,7 +331,6 @@ function runTask(taskNumber) {
             easing: "easeInQuad"
         });
 
-        // 3D twist lock mechanism
         const twistTimer = setTimeout(() => {
             estopCap.setAttribute("animation__twist", {
                 property: "rotation",
@@ -348,11 +341,21 @@ function runTask(taskNumber) {
         }, 450);
         activeTimers.push(twistTimer);
     }
+    else if (taskNumber === 6) {
+        status.innerText = "TASK 6: SELECT AUTO MODE";
+        task6Mode.setAttribute("visible", "true");
+        
+        modeKnob.setAttribute("animation__turn", {
+            property: "rotation",
+            to: "0 0 -90",
+            dur: 900,
+            easing: "easeOutBack"
+        });
+    }
     else if (taskNumber === 7) {
         status.innerText = "TASK 7: PRESS CYCLE START";
         task7CycleStart.setAttribute("visible", "true");
         
-        // Improved realistic spring-loaded press with elastic bounce
         cyclestartBtn.setAttribute("animation__press", {
             property: "position",
             from: "0 0 0.012",
@@ -363,7 +366,19 @@ function runTask(taskNumber) {
             easing: "easeInOutElastic"
         });
     }
-
+    else if (taskNumber === 8) {
+        status.innerText = "TASK 8: ADJUST FEED OVERRIDE";
+        task8Feed.setAttribute("visible", "true");
+        
+        feedDial.setAttribute("animation__turn", {
+            property: "rotation",
+            from: "0 0 -45",
+            to: "0 0 115",
+            dur: 1400,
+            easing: "easeInOutCubic"
+        });
+    }
+}
 
 // Target Event Handlers
 targetGen.addEventListener("targetFound", () => {
