@@ -87,7 +87,7 @@
 </div>
 
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 2;"
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 2; filterMinCF:0.0001; filterBeta: 0.001;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
     renderer="colorManagement: true; precision: highp; antialias: true;">
@@ -141,42 +141,40 @@
         </a-entity>
     </a-entity>
 
-    <!-- ================================================= -->
+  <!-- ================================================= -->
     <!-- TARGET 1: CNC MACHINE                             -->
     <!-- ================================================= -->
     <a-entity id="cnc-target" mindar-image-target="targetIndex: 1">
-        <!-- TASK 5: EMERGENCY STOP BUTTON -->
-        <a-entity id="task5-estop" position="-0.28 -0.11 0.05" scale="0.8 0.8 0.8" visible="false">
-            <a-yellow-base position="0 0 0">
-                <a-cylinder position="0 0 0" radius="0.04" height="0.01" rotation="90 0 0" color="#ffcc00"></a-cylinder>
-            </a-yellow-base>
+        <!-- TASK 5: EMERGENCY STOP BUTTON (Bottom Left a bit) -->
+        <a-entity id="task5-estop" position="-0.32 -0.15 0.05" scale="0.8 0.8 0.8" visible="false">
+            <a-cylinder position="0 0 0" radius="0.04" height="0.01" rotation="90 0 0" color="#ffcc00" material="roughness: 0.5"></a-cylinder>
             <a-entity id="estop-cap" position="0 0 0.02">
-                <a-cylinder position="0 0 0.015" radius="0.032" height="0.025" rotation="90 0 0" color="#dd0000"></a-cylinder>
+                <a-cylinder position="0 0 0.015" radius="0.032" height="0.025" rotation="90 0 0" color="#dd0000" material="roughness: 0.3"></a-cylinder>
             </a-entity>
         </a-entity>
 
-        <!-- TASK 6: MODE SELECTOR SWITCH -->
-        <a-entity id="task6-mode" position="-0.15 -0.16 0.05" scale="0.8 0.8 0.8" visible="false">
+        <!-- TASK 6: MODE SELECTOR SWITCH (Bottom Left a bit) -->
+        <a-entity id="task6-mode" position="-0.20 -0.20 0.05" scale="0.8 0.8 0.8" visible="false">
             <a-ring rotation="0 0 0" radius-inner="0.03" radius-outer="0.04" color="#ffffff"></a-ring>
             <a-entity id="mode-knob" position="0 0 0.01" rotation="0 0 0">
-                <a-cylinder position="0 0 0" radius="0.025" height="0.02" rotation="90 0 0" color="#111111"></a-cylinder>
+                <a-cylinder position="0 0 0" radius="0.025" height="0.02" rotation="90 0 0" color="#111111" material="roughness: 0.4"></a-cylinder>
                 <a-box position="0 0.01 0.01" width="0.008" height="0.03" depth="0.015" color="#ffcc00"></a-box>
             </a-entity>
         </a-entity>
 
-        <!-- TASK 7: CYCLE START BUTTON -->
-        <a-entity id="task7-cyclestart" position="-0.19 -0.32 0.05" scale="0.8 0.8 0.8" visible="false">
+        <!-- TASK 7: CYCLE START BUTTON (Bottom Left a lot) -->
+        <a-entity id="task7-cyclestart" position="-0.35 -0.42 0.05" scale="0.8 0.8 0.8" visible="false">
             <a-cylinder position="0 0 0" radius="0.025" height="0.01" rotation="90 0 0" color="#333333"></a-cylinder>
             <a-entity id="cyclestart-btn" position="0 0 0.01">
-                <a-cylinder position="0 0 0.008" radius="0.02" height="0.015" rotation="90 0 0" color="#00cc44" emissive="#004411"></a-cylinder>
+                <a-cylinder position="0 0 0.008" radius="0.02" height="0.015" rotation="90 0 0" color="#00cc44" material="roughness: 0.2"></a-cylinder>
             </a-entity>
         </a-entity>
 
-        <!-- TASK 8: FEED OVERRIDE DIAL -->
-        <a-entity id="task8-feed" position="-0.06 -0.16 0.05" scale="0.8 0.8 0.8" visible="false">
+        <!-- TASK 8: FEED OVERRIDE DIAL (Bottom Right a bit) -->
+        <a-entity id="task8-feed" position="0.02 -0.20 0.05" scale="0.8 0.8 0.8" visible="false">
             <a-circle radius="0.035" color="#222222"></a-circle>
             <a-entity id="feed-dial" position="0 0 0.01" rotation="0 0 -45">
-                <a-cylinder position="0 0 0" radius="0.022" height="0.02" rotation="90 0 0" color="#444444"></a-cylinder>
+                <a-cylinder position="0 0 0" radius="0.022" height="0.02" rotation="90 0 0" color="#444444" material="roughness: 0.4"></a-cylinder>
                 <a-box position="0 0.012 0.008" width="0.005" height="0.018" depth="0.01" color="#ffffff"></a-box>
             </a-entity>
         </a-entity>
