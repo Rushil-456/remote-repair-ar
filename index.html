@@ -272,6 +272,7 @@ function resetAllTasks() {
     
     estopCap.removeAttribute("animation__press");
     estopCap.removeAttribute("animation__twist");
+    estopCap.removeAttribute("animation__recoil");
     estopCap.setAttribute("position", "0 0 0.03");
     estopCap.setAttribute("rotation", "0 0 0");
 
@@ -279,7 +280,10 @@ function resetAllTasks() {
     modeKnob.setAttribute("rotation", "0 0 0");
 
     cyclestartBtn.removeAttribute("animation__press");
+    cyclestartBtn.removeAttribute("animation__release");
+    cyclestartBtn.removeAttribute("animation__pulse");
     cyclestartBtn.setAttribute("position", "0 0 0.012");
+    cyclestartBtn.setAttribute("scale", "1 1 1");
 
     feedDial.removeAttribute("animation__turn");
     feedDial.setAttribute("rotation", "0 0 -45");
@@ -320,27 +324,43 @@ function runTask(taskNumber) {
         breakerToggle.setAttribute("animation__flip", { property: "rotation", to: "35 0 0", dur: 1000, easing: "easeInOutBack" });
     }
     // CNC Machine Tasks
-    else if (taskNumber === 5) {
-        status.innerText = "TASK 5: PRESS & LOCK EMERGENCY STOP";
-        task5Estop.setAttribute("visible", "true");
-        
-        estopCap.setAttribute("animation__press", {
-            property: "position",
-            to: "0 0 0.005",
-            dur: 450,
-            easing: "easeInQuad"
-        });
+ else if (taskNumber === 5) {
+    status.innerText = "TASK 5: PRESS & LOCK EMERGENCY STOP";
+    task5Estop.setAttribute("visible", "true");
+    
+    // Step 1: Deep press into housing
+    estopCap.setAttribute("animation__press", {
+        property: "position",
+        from: "0 0 0.03",
+        to: "0 0 0.008",
+        dur: 300,
+        easing: "easeInQuad"
+    });
 
-        const twistTimer = setTimeout(() => {
-            estopCap.setAttribute("animation__twist", {
-                property: "rotation",
-                to: "0 0 45",
-                dur: 350,
-                easing: "easeInOutQuad"
-            });
-        }, 450);
-        activeTimers.push(twistTimer);
-    }
+    // Step 2: Twist 45 degrees to lock
+    const twistTimer = setTimeout(() => {
+        estopCap.setAttribute("animation__twist", {
+            property: "rotation",
+            from: "0 0 0",
+            to: "0 0 45",
+            dur: 400,
+            easing: "easeInOutCubic"
+        });
+    }, 300);
+
+    // Step 3: Mechanical recoil settling
+    const recoilTimer = setTimeout(() => {
+        estopCap.setAttribute("animation__recoil", {
+            property: "position",
+            from: "0 0 0.008",
+            to: "0 0 0.012",
+            dur: 150,
+            easing: "easeOutBack"
+        });
+    }, 700);
+
+    activeTimers.push(twistTimer, recoilTimer);
+}
     else if (taskNumber === 6) {
         status.innerText = "TASK 6: SELECT AUTO MODE";
         task6Mode.setAttribute("visible", "true");
@@ -352,20 +372,45 @@ function runTask(taskNumber) {
             easing: "easeOutBack"
         });
     }
-    else if (taskNumber === 7) {
-        status.innerText = "TASK 7: PRESS CYCLE START";
-        task7CycleStart.setAttribute("visible", "true");
-        
-        cyclestartBtn.setAttribute("animation__press", {
+else if (taskNumber === 7) {
+    status.innerText = "TASK 7: PRESS CYCLE START";
+    task7CycleStart.setAttribute("visible", "true");
+    
+    // Step 1: Push button inward
+    cyclestartBtn.setAttribute("animation__press", {
+        property: "position",
+        from: "0 0 0.012",
+        to: "0 0 0.002",
+        dur: 200,
+        easing: "easeInQuad"
+    });
+
+    // Step 2: Spring return back to original position
+    const releaseTimer = setTimeout(() => {
+        cyclestartBtn.setAttribute("animation__release", {
             property: "position",
-            from: "0 0 0.012",
-            to: "0 0 0.001",
-            dur: 300,
+            from: "0 0 0.002",
+            to: "0 0 0.012",
+            dur: 250,
+            easing: "easeOutBack"
+        });
+    }, 400);
+
+    // Step 3: Visual indicator flash/pulse on activation
+    const scaleTimer = setTimeout(() => {
+        cyclestartBtn.setAttribute("animation__pulse", {
+            property: "scale",
+            from: "1 1 1",
+            to: "1.08 1.08 1.08",
+            dur: 200,
             dir: "alternate",
             loop: 2,
-            easing: "easeInOutElastic"
+            easing: "easeInOutSine"
         });
-    }
+    }, 200);
+
+    activeTimers.push(releaseTimer, scaleTimer);
+}
     else if (taskNumber === 8) {
         status.innerText = "TASK 8: ADJUST FEED OVERRIDE";
         task8Feed.setAttribute("visible", "true");
