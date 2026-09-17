@@ -1,303 +1,1366 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Remote Expert Console</title>
+
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
     <style>
+        :root {
+            --bg: #0b0d0f;
+            --panel: #111416;
+            --panel-2: #15191c;
+            --border: #252b2f;
+            --border-soft: #1c2124;
+
+            --text: #e7ecef;
+            --muted: #7d878d;
+            --dim: #4d565c;
+
+            --cyan: #6dd6e7;
+            --green: #62d39b;
+            --amber: #e5aa58;
+            --red: #e36b6b;
+
+            --purple: #9b8be8;
+
+            --sidebar-width: 375px;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
+        html,
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #090d16;
-            color: #f1f5f9;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                Inter,
+                "Segoe UI",
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+
             display: flex;
-            height: 100vh;
             overflow: hidden;
         }
 
-        /* MAIN VIDEO CANVAS CONTAINER */
+        /* =========================================================
+           VIDEO AREA
+        ========================================================= */
+
         #video-container {
-            flex: 1;
-            background: #020617;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             position: relative;
-            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8);
+            flex: 1;
+            min-width: 0;
+
+            background:
+                radial-gradient(circle at 50% 40%, #171b1e 0%, #0a0c0e 60%);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+        }
+
+        /*
+            Very subtle technical grid.
+            It gives the interface an engineering feel without
+            becoming a sci-fi HUD.
+        */
+
+        #video-container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+
+            background-size: 48px 48px;
+
+            pointer-events: none;
         }
 
         video {
             width: 100%;
             height: 100%;
+
             object-fit: contain;
-            border-radius: 4px;
+
+            position: relative;
+            z-index: 1;
+
+            background: #050607;
         }
 
-        /* OVERLAY BADGES */
-        .status-badge {
+        /* =========================================================
+           TOP LEFT SESSION INFORMATION
+        ========================================================= */
+
+        .session-header {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 0.6rem 1.2rem;
-            border-radius: 30px;
-            color: #38bdf8;
-            font-size: 14px;
-            font-weight: 600;
+            top: 22px;
+            left: 24px;
+
+            z-index: 10;
+
             display: flex;
             align-items: center;
-            gap: 10px;
-            z-index: 10;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            gap: 14px;
         }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 7px 11px;
+
+            background: rgba(10, 13, 15, 0.82);
+            border: 1px solid #30363a;
+
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+
+            color: #b8c0c5;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+
             border-radius: 50%;
-            background: #f59e0b;
-            box-shadow: 0 0 10px #f59e0b;
+
+            background: var(--amber);
         }
 
-        .status-dot.online {
-            background: #10b981;
-            box-shadow: 0 0 10px #10b981;
+        .live-dot.online {
+            background: var(--green);
+            box-shadow: 0 0 9px rgba(98, 211, 155, 0.55);
         }
+
+        .session-name {
+            font-size: 12px;
+            color: #90999f;
+
+            padding-left: 14px;
+
+            border-left: 1px solid #30363a;
+        }
+
+        /* =========================================================
+           VIDEO HUD
+        ========================================================= */
+
+        .video-hud {
+            position: absolute;
+            left: 24px;
+            bottom: 24px;
+
+            z-index: 10;
+
+            display: flex;
+            align-items: center;
+            gap: 20px;
+
+            font-family: "Consolas", "SFMono-Regular", monospace;
+
+            font-size: 10px;
+            letter-spacing: 0.5px;
+
+            color: #889298;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .hud-label {
+            color: #50595f;
+        }
+
+        /* =========================================================
+           COMMAND FEEDBACK
+        ========================================================= */
 
         .task-feedback {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(15, 23, 42, 0.9);
-            border-left: 4px solid #38bdf8;
-            padding: 0.8rem 1.2rem;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #e2e8f0;
+
+            left: 50%;
+            bottom: 26px;
+
+            transform: translateX(-50%) translateY(10px);
+
+            background: #161b1e;
+
+            border: 1px solid #30383d;
+
+            padding: 11px 18px;
+
+            font-size: 12px;
+            letter-spacing: 0.3px;
+
+            color: #cdd4d8;
+
             opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 10;
+            pointer-events: none;
+
+            transition:
+                opacity 0.25s ease,
+                transform 0.25s ease;
+
+            z-index: 20;
         }
 
-        /* SIDEBAR INTERFACE */
+        .task-feedback.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
         #sidebar {
-            width: 360px;
-            background: #0f172a;
-            border-left: 1px solid #1e293b;
-            padding: 1.5rem;
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+
+            background: var(--panel);
+
+            border-left: 1px solid var(--border);
+
             display: flex;
             flex-direction: column;
-            gap: 1.8rem;
+
             overflow-y: auto;
+
+            position: relative;
+            z-index: 30;
         }
 
-        .brand-header {
+        /* =========================================================
+           SIDEBAR HEADER
+        ========================================================= */
+
+        .console-header {
+            padding: 22px 22px 18px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            border-bottom: 1px solid #1e293b;
-            padding-bottom: 1rem;
         }
 
-        .brand-header h2 {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #f8fafc;
-        }
+        .brand-mark {
+            width: 34px;
+            height: 34px;
 
-        .section-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #64748b;
-            margin-bottom: 0.8rem;
-            font-weight: 700;
-        }
+            border: 1px solid #394247;
 
-        .task-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.6rem;
-        }
-
-        /* BUTTON DESIGN */
-        .action-btn {
-            background: #1e293b;
-            color: #cbd5e1;
-            border: 1px solid #334155;
-            padding: 0.85rem 0.6rem;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
+
+            color: var(--cyan);
+
+            background: #0d1113;
         }
 
-        /* GENERATOR CONTROL STYLING */
-        .gen-group .action-btn:hover {
-            background: #0284c7;
-            color: #ffffff;
-            border-color: #38bdf8;
-            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
-            transform: translateY(-2px);
+        .brand-text h1 {
+            font-size: 14px;
+            font-weight: 650;
+
+            letter-spacing: 0.2px;
         }
 
-        /* CNC CONTROL STYLING */
-        .cnc-group .action-btn:hover {
-            background: #7c3aed;
-            color: #ffffff;
-            border-color: #a78bfa;
-            box-shadow: 0 4px 12px rgba(167, 139, 250, 0.25);
-            transform: translateY(-2px);
+        .brand-text span {
+            display: block;
+
+            margin-top: 3px;
+
+            font-size: 10px;
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+
+            color: var(--dim);
+        }
+
+        .connection-status {
+            font-size: 9px;
+
+            padding: 5px 7px;
+
+            border: 1px solid #30373b;
+
+            color: var(--muted);
+
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .connection-status.online {
+            color: var(--green);
+            border-color: rgba(98, 211, 155, 0.25);
+        }
+
+        /* =========================================================
+           SESSION BAR
+        ========================================================= */
+
+        .session-bar {
+            padding: 13px 22px;
+
+            border-bottom: 1px solid var(--border-soft);
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-bar span:first-child {
+            color: var(--dim);
+
+            text-transform: uppercase;
+
+            font-size: 9px;
+            letter-spacing: 1px;
+        }
+
+        #sessionId {
+            font-family: "Consolas", monospace;
+
+            color: #9ba5aa;
+
+            font-size: 10px;
+        }
+
+        /* =========================================================
+           CONTROL SECTIONS
+        ========================================================= */
+
+        .controls {
+            padding: 20px 22px;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 10px;
+
+            color: #737d83;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1.4px;
+
+            font-weight: 700;
+        }
+
+        .section-code {
+            font-family: monospace;
+
+            color: #3e474c;
+
+            font-size: 9px;
+        }
+
+        /* =========================================================
+           TASK GRID
+        ========================================================= */
+
+        .task-grid {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 7px;
+        }
+
+        .action-btn {
+            position: relative;
+
+            min-height: 55px;
+
+            background: var(--panel-2);
+
+            color: #b9c2c7;
+
+            border: 1px solid #2a3034;
+
+            border-radius: 2px;
+
+            padding: 10px;
+
+            cursor: pointer;
+
+            text-align: left;
+
+            transition:
+                background 0.18s ease,
+                border-color 0.18s ease,
+                transform 0.12s ease;
+
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            top: 0;
+            bottom: 0;
+
+            width: 2px;
+
+            background: transparent;
+
+            transition: background 0.18s ease;
+        }
+
+        .action-btn:hover {
+            background: #1a1f22;
+
+            border-color: #3b454b;
+
+            transform: translateY(-1px);
         }
 
         .action-btn:active {
             transform: translateY(0);
         }
 
-        /* FOOTER BRANDING */
+        .btn-number {
+            display: block;
+
+            font-family: monospace;
+
+            font-size: 9px;
+
+            color: #505a60;
+
+            margin-bottom: 5px;
+        }
+
+        .btn-label {
+            font-size: 12px;
+
+            font-weight: 600;
+
+            color: #c3cbd0;
+        }
+
+        .action-btn:hover .btn-label {
+            color: #e8edef;
+        }
+
+        /* GENERATOR */
+
+        .gen-group .action-btn:hover::before {
+            background: var(--cyan);
+        }
+
+        .gen-group .section-code {
+            color: #456b72;
+        }
+
+        /* CNC */
+
+        .cnc-group .action-btn:hover::before {
+            background: var(--purple);
+        }
+
+        .cnc-group .section-code {
+            color: #5d567d;
+        }
+
+        /* =========================================================
+           ACTIVITY LOG
+        ========================================================= */
+
+        .activity {
+            margin: 0 22px;
+
+            border-top: 1px solid var(--border);
+
+            padding-top: 17px;
+        }
+
+        .activity-title {
+            font-size: 9px;
+
+            color: #687278;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1.3px;
+
+            margin-bottom: 10px;
+        }
+
+        #activityLog {
+            display: flex;
+            flex-direction: column;
+
+            gap: 8px;
+
+            max-height: 115px;
+
+            overflow: hidden;
+        }
+
+        .log-entry {
+            display: flex;
+
+            gap: 9px;
+
+            font-family: monospace;
+
+            font-size: 9px;
+
+            color: #667177;
+        }
+
+        .log-time {
+            color: #3f484d;
+        }
+
+        .log-action {
+            color: #8c979d;
+        }
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
         .console-footer {
             margin-top: auto;
-            padding-top: 1rem;
-            border-top: 1px solid #1e293b;
-            font-size: 11px;
-            color: #475569;
-            text-align: center;
+
+            padding: 17px 22px;
+
+            border-top: 1px solid var(--border);
+
+            display: flex;
+
+            justify-content: space-between;
+
+            font-size: 9px;
+
+            color: #424b50;
+        }
+
+        .secure {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .secure-dot {
+            width: 5px;
+            height: 5px;
+
+            border-radius: 50%;
+
+            background: var(--green);
+        }
+
+        /* =========================================================
+           MOBILE
+        ========================================================= */
+
+        @media (max-width: 850px) {
+
+            body {
+                flex-direction: column;
+            }
+
+            #video-container {
+                height: 58vh;
+                flex: none;
+            }
+
+            #sidebar {
+                width: 100%;
+                height: 42vh;
+
+                border-left: none;
+                border-top: 1px solid var(--border);
+            }
+
+            .activity {
+                display: none;
+            }
+
+            .console-footer {
+                margin-top: 10px;
+            }
+        }
+
+        @media (max-width: 500px) {
+
+            #video-container {
+                height: 52vh;
+            }
+
+            #sidebar {
+                height: 48vh;
+            }
+
+            .video-hud {
+                display: none;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div id="video-container">
-        <div class="status-badge" id="connStatus">
-            <span class="status-dot" id="statusDot"></span>
-            <span id="statusText">Initializing Peer Connection...</span>
-        </div>
-        <div class="task-feedback" id="taskFeedback">Command Executed</div>
-        <video id="remoteVideo" autoplay playsinline muted></video>
-    </div>
+    <!-- =========================================================
+         VIDEO / FIELD VIEW
+    ========================================================== -->
 
-    <div id="sidebar">
-        <div class="brand-header">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-            <h2>Expert Operations</h2>
-        </div>
+    <main id="video-container">
 
-        <div class="gen-group">
-            <div class="section-title">Generator Controls</div>
-            <div class="task-grid">
-                <button class="action-btn" onclick="sendTask(1)">Fuel Cap</button>
-                <button class="action-btn" onclick="sendTask(2)">Lever</button>
-                <button class="action-btn" onclick="sendTask(3)">Starter Key</button>
-                <button class="action-btn" onclick="sendTask(4)">Breaker</button>
+        <div class="session-header">
+
+            <div class="live-indicator">
+                <span class="live-dot" id="statusDot"></span>
+                <span id="statusText">CONNECTING</span>
             </div>
-        </div>
 
-        <div class="cnc-group">
-            <div class="section-title">CNC Controls</div>
-            <div class="task-grid">
-                <button class="action-btn" onclick="sendTask(5)">E-Stop</button>
-                <button class="action-btn" onclick="sendTask(6)">Mode Select</button>
-                <button class="action-btn" onclick="sendTask(7)">Cycle Start</button>
-                <button class="action-btn" onclick="sendTask(8)">Speed Override</button>
+            <div class="session-name">
+                FIELD CAMERA
             </div>
+
         </div>
 
-        <div class="console-footer">
-            Remote Repair WebRTC Network • Encrypted End-to-End
+        <video
+            id="remoteVideo"
+            autoplay
+            playsinline
+            muted>
+        </video>
+
+        <div class="video-hud">
+
+            <div class="hud-item">
+                <span class="hud-label">SESSION</span>
+                <span id="hudSession">----</span>
+            </div>
+
+            <div class="hud-item">
+                <span class="hud-label">LINK</span>
+                <span id="hudLink">WAITING</span>
+            </div>
+
+            <div class="hud-item">
+                <span class="hud-label">VIDEO</span>
+                <span id="hudVideo">NO SIGNAL</span>
+            </div>
+
         </div>
-    </div>
+
+        <div class="task-feedback" id="taskFeedback">
+            Command transmitted
+        </div>
+
+    </main>
+
+
+    <!-- =========================================================
+         EXPERT CONSOLE
+    ========================================================== -->
+
+    <aside id="sidebar">
+
+        <header class="console-header">
+
+            <div class="header-top">
+
+                <div class="brand">
+
+                    <div class="brand-mark">
+
+                        <svg
+                            width="19"
+                            height="19"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6">
+
+                            <path d="M12 3L4 7v10l8 4 8-4V7l-8-4z" />
+                            <path d="M4 7l8 4 8-4" />
+                            <path d="M12 11v10" />
+
+                        </svg>
+
+                    </div>
+
+                    <div class="brand-text">
+                        <h1>Expert Console</h1>
+                        <span>Remote Operations</span>
+                    </div>
+
+                </div>
+
+                <div
+                    class="connection-status"
+                    id="connectionBadge">
+                    OFFLINE
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- SESSION -->
+
+        <div class="session-bar">
+
+            <span>Active Session</span>
+
+            <span id="sessionId">
+                repair-session-01
+            </span>
+
+        </div>
+
+
+        <!-- CONTROLS -->
+
+        <section class="controls">
+
+            <!-- GENERATOR -->
+
+            <div class="section gen-group">
+
+                <div class="section-heading">
+
+                    <span class="section-title">
+                        Generator
+                    </span>
+
+                    <span class="section-code">
+                        GEN / 01
+                    </span>
+
+                </div>
+
+                <div class="task-grid">
+
+                    <button
+                        class="action-btn"
+                        onclick="sendTask(1, 'Fuel Cap')">
+
+                        <span class="btn-number">01</span>
+                        <span class="btn-label">Fuel Cap</span>
+
+                    </button>
+
+                    <button
+                        class="action-btn"
+                        onclick="sendTask(2, 'Control Lever')">
+
+                        <span class="btn-number">02</span>
+                        <span class="btn-label">Control Lever</span>
+
+                    </button>
+
+                    <button
+                        class="action-btn"
+                        onclick="sendTask(3, 'Starter Key')">
+
+                        <span class="btn-number">03</span>
+                        <span class="btn-label">Starter Key</span>
+
+                    </button>
+
+                    <button
+                        class="action-btn"
+                        onclick="sendTask(4, 'Breaker')">
+
+                        <span class="btn-number">04</span>
+                        <span class="btn-label">Breaker</span>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- CNC -->
+
+            <div class="section cnc-group">
+
+                <div class="section-heading">
+
+                    <span class="section-title">
+                        CNC Machine
+                    </span>
+
+                    <span class="section-code">
+                        CNC / 02
+                    </span>
+
+                </div>
+
+                <div class="task-grid">
+
+                    <button
+                        class="action-btn"
+                        onclick="sendTask(5, 'Emergency Stop')">
+
+                        <span class="btn-number">05</span>
+                        <span class="btn-label">Emergency Stop</span>
+
+                    </button>
+
+                    <button
+                        class="action-btn"
+                        onclick="sendTask(6, 'Mode Select')">
+
+                        <span class="btn-number">06</span>
+                        <span class="btn-label">Mode Select</span>
+
+                    </button>
+
+                    <button
+                        class="action-btn"
+                        onclick="sendTask(7, 'Cycle Start')">
+
+                        <span class="btn-number">07</span>
+                        <span class="btn-label">Cycle Start</span>
+
+                    </button>
+
+                    <button
+                        class="action-btn"
+                        onclick="sendTask(8, 'Speed Override')">
+
+                        <span class="btn-number">08</span>
+                        <span class="btn-label">Speed Override</span>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ACTIVITY -->
+
+        <section class="activity">
+
+            <div class="activity-title">
+                Command History
+            </div>
+
+            <div id="activityLog">
+
+                <div class="log-entry">
+                    <span class="log-time">--:--</span>
+                    <span class="log-action">Waiting for operator input</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FOOTER -->
+
+        <footer class="console-footer">
+
+            <div>
+                WEBRTC / P2P
+            </div>
+
+            <div class="secure">
+                <span class="secure-dot"></span>
+                SECURE LINK
+            </div>
+
+        </footer>
+
+    </aside>
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================== -->
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomId = urlParams.get('room') || 'repair-session-01';
 
-        const expertId = roomId + '-expert';
-        const techId = roomId;
+        /* -------------------------------------------------------
+           SESSION
+        ------------------------------------------------------- */
 
-        const videoEl = document.getElementById('remoteVideo');
-        const statusText = document.getElementById('statusText');
-        const statusDot = document.getElementById('statusDot');
-        const taskFeedback = document.getElementById('taskFeedback');
+        const urlParams =
+            new URLSearchParams(window.location.search);
 
-        let peer = new Peer(expertId);
+        const roomId =
+            urlParams.get("room") || "repair-session-01";
+
+        const expertId =
+            roomId + "-expert";
+
+        const techId =
+            roomId;
+
+
+        /* -------------------------------------------------------
+           ELEMENTS
+        ------------------------------------------------------- */
+
+        const videoEl =
+            document.getElementById("remoteVideo");
+
+        const statusText =
+            document.getElementById("statusText");
+
+        const statusDot =
+            document.getElementById("statusDot");
+
+        const taskFeedback =
+            document.getElementById("taskFeedback");
+
+        const connectionBadge =
+            document.getElementById("connectionBadge");
+
+        const activityLog =
+            document.getElementById("activityLog");
+
+        const hudSession =
+            document.getElementById("hudSession");
+
+        const hudLink =
+            document.getElementById("hudLink");
+
+        const hudVideo =
+            document.getElementById("hudVideo");
+
+
+        document.getElementById("sessionId").innerText =
+            roomId;
+
+        hudSession.innerText =
+            roomId;
+
+
+        /* -------------------------------------------------------
+           PEER
+        ------------------------------------------------------- */
+
+        let peer =
+            new Peer(expertId);
+
         let dataConn = null;
 
-        peer.on('open', (id) => {
-            statusText.innerText = `Connecting to Tech (${techId})...`;
+
+        /* -------------------------------------------------------
+           PEER READY
+        ------------------------------------------------------- */
+
+        peer.on("open", () => {
+
+            statusText.innerText =
+                "CONNECTING";
+
+            connectionBadge.innerText =
+                "CONNECTING";
+
             connectToTech();
+
         });
+
+
+        /* -------------------------------------------------------
+           CONNECT TO FIELD TECH
+        ------------------------------------------------------- */
 
         function connectToTech() {
-            dataConn = peer.connect(techId);
 
-            dataConn.on('open', () => {
-                statusText.innerText = `Connected to Field Tech`;
-                statusDot.classList.add('online');
+            if (dataConn && dataConn.open)
+                return;
+
+            dataConn =
+                peer.connect(techId);
+
+
+            dataConn.on("open", () => {
+
+                statusText.innerText =
+                    "LINK ACTIVE";
+
+                statusDot.classList.add("online");
+
+                connectionBadge.innerText =
+                    "ONLINE";
+
+                connectionBadge.classList.add("online");
+
+                hudLink.innerText =
+                    "CONNECTED";
+
+                addLog("Field technician connected");
+
             });
 
-            dataConn.on('close', () => {
-                statusText.innerText = `Field Tech Disconnected`;
-                statusDot.classList.remove('online');
-                setTimeout(connectToTech, 3000); // Attempt Auto-reconnect
+
+            dataConn.on("close", () => {
+
+                statusText.innerText =
+                    "FIELD LINK LOST";
+
+                statusDot.classList.remove("online");
+
+                connectionBadge.innerText =
+                    "OFFLINE";
+
+                connectionBadge.classList.remove("online");
+
+                hudLink.innerText =
+                    "DISCONNECTED";
+
+                addLog("Field technician disconnected");
+
+                setTimeout(connectToTech, 3000);
+
             });
+
+
+            dataConn.on("error", () => {
+
+                statusText.innerText =
+                    "LINK ERROR";
+
+                statusDot.classList.remove("online");
+
+                connectionBadge.innerText =
+                    "ERROR";
+
+            });
+
         }
 
-        peer.on('call', (call) => {
+
+        /* -------------------------------------------------------
+           INCOMING VIDEO CALL
+        ------------------------------------------------------- */
+
+        peer.on("call", (call) => {
+
+            /*
+                Important:
+                We answer the incoming call without a local stream.
+                The field technician is expected to send the camera
+                stream.
+            */
+
             call.answer();
 
-            call.on('stream', (remoteStream) => {
-                videoEl.muted = true;
-                videoEl.srcObject = remoteStream;
 
-                const playPromise = videoEl.play();
+            call.on("stream", (remoteStream) => {
+
+                videoEl.srcObject =
+                    remoteStream;
+
+                videoEl.muted =
+                    true;
+
+
+                const playPromise =
+                    videoEl.play();
+
+
                 if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        statusText.innerText = `Streaming Live HD Video`;
-                        statusDot.classList.add('online');
-                    }).catch(() => {
-                        statusText.innerText = `Click viewport to enable video`;
-                        document.body.addEventListener('click', () => {
-                            videoEl.play();
-                            statusText.innerText = `Streaming Live HD Video`;
-                            statusDot.classList.add('online');
-                        }, { once: true });
-                    });
+
+                    playPromise
+                        .then(() => {
+
+                            statusText.innerText =
+                                "LIVE VIDEO";
+
+                            statusDot.classList.add("online");
+
+                            connectionBadge.innerText =
+                                "ONLINE";
+
+                            connectionBadge.classList.add("online");
+
+                            hudVideo.innerText =
+                                "LIVE";
+
+                        })
+                        .catch(() => {
+
+                            statusText.innerText =
+                                "CLICK TO VIEW";
+
+                            document.body.addEventListener(
+                                "click",
+                                () => {
+
+                                    videoEl.play();
+
+                                    statusText.innerText =
+                                        "LIVE VIDEO";
+
+                                    hudVideo.innerText =
+                                        "LIVE";
+
+                                },
+                                { once: true }
+                            );
+
+                        });
+
                 }
+
             });
+
         });
 
-        function sendTask(taskNum) {
-            if (dataConn && dataConn.open) {
-                dataConn.send({ type: 'RUN_TASK', taskNum: taskNum });
-                
-                // Show floating command feedback
-                taskFeedback.innerText = `Triggered Action Task #${taskNum}`;
-                taskFeedback.style.opacity = '1';
-                setTimeout(() => { taskFeedback.style.opacity = '0'; }, 2000);
-            } else {
-                alert("Field Technician connection is currently offline!");
+
+        /* -------------------------------------------------------
+           SEND REPAIR TASK
+        ------------------------------------------------------- */
+
+        function sendTask(taskNum, taskName) {
+
+            if (
+                dataConn &&
+                dataConn.open
+            ) {
+
+                dataConn.send({
+
+                    type: "RUN_TASK",
+
+                    taskNum: taskNum,
+
+                    taskName: taskName
+
+                });
+
+
+                showFeedback(
+                    "TASK " +
+                    String(taskNum).padStart(2, "0") +
+                    "  •  " +
+                    taskName +
+                    " transmitted"
+                );
+
+
+                addLog(
+                    "TASK " +
+                    String(taskNum).padStart(2, "0") +
+                    "  " +
+                    taskName
+                );
+
             }
+
+            else {
+
+                showFeedback(
+                    "FIELD LINK UNAVAILABLE"
+                );
+
+                addLog(
+                    "Command blocked — field link offline"
+                );
+
+            }
+
         }
+
+
+        /* -------------------------------------------------------
+           FEEDBACK
+        ------------------------------------------------------- */
+
+        let feedbackTimer;
+
+        function showFeedback(message) {
+
+            taskFeedback.innerText =
+                message;
+
+            taskFeedback.classList.add("show");
+
+            clearTimeout(feedbackTimer);
+
+            feedbackTimer =
+                setTimeout(() => {
+
+                    taskFeedback.classList.remove("show");
+
+                }, 2200);
+
+        }
+
+
+        /* -------------------------------------------------------
+           ACTIVITY LOG
+        ------------------------------------------------------- */
+
+        function addLog(message) {
+
+            const now =
+                new Date();
+
+            const time =
+                now.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                });
+
+
+            const entry =
+                document.createElement("div");
+
+            entry.className =
+                "log-entry";
+
+
+            entry.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-action">${message}</span>
+            `;
+
+
+            activityLog.prepend(entry);
+
+
+            while (
+                activityLog.children.length > 5
+            ) {
+
+                activityLog.removeChild(
+                    activityLog.lastChild
+                );
+
+            }
+
+        }
+
+
+        /* -------------------------------------------------------
+           VIDEO EVENTS
+        ------------------------------------------------------- */
+
+        videoEl.addEventListener(
+            "loadedmetadata",
+            () => {
+
+                hudVideo.innerText =
+                    "READY";
+
+            }
+        );
+
+
+        videoEl.addEventListener(
+            "playing",
+            () => {
+
+                hudVideo.innerText =
+                    "LIVE";
+
+            }
+        );
+
+
+        videoEl.addEventListener(
+            "waiting",
+            () => {
+
+                hudVideo.innerText =
+                    "BUFFERING";
+
+            }
+        );
+
+
+        /* -------------------------------------------------------
+           PEER ERROR
+        ------------------------------------------------------- */
+
+        peer.on("error", (error) => {
+
+            console.error(
+                "PeerJS Error:",
+                error
+            );
+
+            statusText.innerText =
+                "CONNECTION ERROR";
+
+            statusDot.classList.remove(
+                "online"
+            );
+
+            connectionBadge.innerText =
+                "ERROR";
+
+            addLog(
+                "Peer connection error"
+            );
+
+        });
+
     </script>
 
 </body>
 
 </html>
+```
