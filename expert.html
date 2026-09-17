@@ -4,569 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Remote Expert Console</title>
-
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: Arial, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+            background: #0f172a; color: #f8fafc;
+            display: flex; height: 100vh; overflow: hidden;
         }
-
-        /* ================= VIDEO ================= */
-
         #video-container {
-            flex: 1;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
+            flex: 1; background: #000; display: flex;
+            justify-content: center; align-items: center; position: relative;
         }
-
-        #remoteVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background: #000;
-        }
-
-        /* ================= STATUS ================= */
-
-        .status-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-
-            background: rgba(0, 0, 0, 0.8);
-            padding: 0.5rem 1rem;
-
-            border-radius: 20px;
-            color: #10b981;
-
-            font-weight: bold;
-            z-index: 10;
-        }
-
-        /* ================= SIDEBAR ================= */
-
+        video { width: 100%; height: 100%; object-fit: contain; }
         #sidebar {
-            width: 320px;
-            background: #1e293b;
-
-            border-left: 1px solid #334155;
-
-            padding: 1.5rem;
-
-            display: flex;
-            flex-direction: column;
-
-            gap: 1.5rem;
-
-            overflow-y: auto;
+            width: 320px; background: #1e293b;
+            border-left: 1px solid #334155; padding: 1.5rem;
+            display: flex; flex-direction: column; gap: 1.5rem;
         }
-
-        #sidebar h2 {
-            font-size: 1.4rem;
-        }
-
-        #sidebar h3 {
-            margin-bottom: 0.7rem;
-            font-size: 1rem;
-            color: #cbd5e1;
-        }
-
-        /* ================= TASK BUTTONS ================= */
-
-        .task-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-        }
-
+        .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
         .action-btn {
-            background: #334155;
-            color: #f8fafc;
-
-            border: 1px solid #475569;
-
-            padding: 0.75rem;
-
-            border-radius: 8px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-
-            text-align: center;
-
-            transition: 0.2s;
+            background: #334155; color: #f8fafc; border: 1px solid #475569;
+            padding: 0.75rem; border-radius: 8px; font-weight: bold;
+            cursor: pointer; text-align: center;
         }
-
-        .action-btn:hover {
-            background: #ffcc00;
-            color: #000;
-        }
-
-        .action-btn:active {
-            transform: scale(0.97);
-        }
-
-        /* ================= MOBILE ================= */
-
-        @media (max-width: 800px) {
-
-            body {
-                flex-direction: column;
-            }
-
-            #video-container {
-                height: 65vh;
-                flex: none;
-            }
-
-            #sidebar {
-                width: 100%;
-                height: 35vh;
-
-                border-left: none;
-                border-top: 1px solid #334155;
-
-                padding: 1rem;
-
-                gap: 1rem;
-            }
-
-            #sidebar h2 {
-                font-size: 1.1rem;
-            }
-
-            .action-btn {
-                padding: 0.6rem;
-            }
+        .action-btn:hover { background: #ffcc00; color: #000; }
+        .status-badge {
+            position: absolute; top: 15px; left: 15px;
+            background: rgba(0, 0, 0, 0.8); padding: 0.5rem 1rem;
+            border-radius: 20px; color: #10b981; font-weight: bold; z-index: 10;
         }
     </style>
 </head>
-
 <body>
 
-<!-- =====================================================
-     REMOTE VIDEO
-===================================================== -->
-
 <div id="video-container">
-
-    <div class="status-badge" id="connStatus">
-        Connecting...
-    </div>
-
-    <video
-        id="remoteVideo"
-        autoplay
-        playsinline
-        muted>
-    </video>
-
+    <div class="status-badge" id="connStatus">Connecting...</div>
+    <video id="remoteVideo" autoplay playsinline muted></video>
 </div>
-
-
-<!-- =====================================================
-     EXPERT SIDEBAR
-===================================================== -->
 
 <div id="sidebar">
-
     <h2>Remote Repair Expert</h2>
-
-    <!-- GENERATOR -->
-
+    
     <div>
-
         <h3>Generator Controls</h3>
-
         <div class="task-grid">
-
-            <button
-                class="action-btn"
-                onclick="sendTask(1)">
-                Task 1
-            </button>
-
-            <button
-                class="action-btn"
-                onclick="sendTask(2)">
-                Task 2
-            </button>
-
-            <button
-                class="action-btn"
-                onclick="sendTask(3)">
-                Task 3
-            </button>
-
-            <button
-                class="action-btn"
-                onclick="sendTask(4)">
-                Task 4
-            </button>
-
+            <button class="action-btn" onclick="sendTask(1)">Task 1</button>
+            <button class="action-btn" onclick="sendTask(2)">Task 2</button>
+            <button class="action-btn" onclick="sendTask(3)">Task 3</button>
+            <button class="action-btn" onclick="sendTask(4)">Task 4</button>
         </div>
-
     </div>
-
-
-    <!-- CNC -->
 
     <div>
-
         <h3>CNC Machine Controls</h3>
-
         <div class="task-grid">
-
-            <button
-                class="action-btn"
-                onclick="sendTask(5)">
-                Task 5
-            </button>
-
-            <button
-                class="action-btn"
-                onclick="sendTask(6)">
-                Task 6
-            </button>
-
-            <button
-                class="action-btn"
-                onclick="sendTask(7)">
-                Task 7
-            </button>
-
-            <button
-                class="action-btn"
-                onclick="sendTask(8)">
-                Task 8
-            </button>
-
+            <button class="action-btn" onclick="sendTask(5)">Task 5</button>
+            <button class="action-btn" onclick="sendTask(6)">Task 6</button>
+            <button class="action-btn" onclick="sendTask(7)">Task 7</button>
+            <button class="action-btn" onclick="sendTask(8)">Task 8</button>
         </div>
-
     </div>
-
 </div>
 
-
 <script>
+const urlParams = new URLSearchParams(window.location.search);
+const roomId = urlParams.get('room') || 'repair-session-01';
 
-/* =====================================================
-   ROOM
-===================================================== */
-
-const urlParams =
-    new URLSearchParams(window.location.search);
-
-const roomId =
-    urlParams.get('room') || 'repair-session-01';
-
-
-/* =====================================================
-   PEER VARIABLES
-===================================================== */
-
-let peer = null;
+let peer = new Peer();
 let dataConn = null;
-let mediaCall = null;
 
+peer.on('open', () => {
+    document.getElementById('connStatus').innerText = `Connecting to room: ${roomId}...`;
 
-/* =====================================================
-   STATUS
-===================================================== */
-
-function setStatus(message, color = "#10b981") {
-
-    const status =
-        document.getElementById("connStatus");
-
-    status.innerText = message;
-    status.style.color = color;
-}
-
-
-/* =====================================================
-   CREATE EXPERT PEER
-===================================================== */
-
-peer = new Peer();
-
-
-/* =====================================================
-   PEER OPEN
-===================================================== */
-
-peer.on("open", function(peerId) {
-
-    console.log("Expert Peer ID:", peerId);
-
-    setStatus(
-        "Connecting to Field Technician..."
-    );
-
-    /*
-       Connect to technician.
-
-       Technician Peer ID = roomId
-    */
-
-    dataConn = peer.connect(roomId, {
-        reliable: true
+    dataConn = peer.connect(roomId);
+    
+    dataConn.on('open', () => {
+        document.getElementById('connStatus').innerText = `Status: Connected to Field Tech`;
     });
 
-
-    /* =================================================
-       DATA CONNECTION OPEN
-    ================================================= */
-
-    dataConn.on("open", function() {
-
-        console.log(
-            "Connected to technician:",
-            roomId
-        );
-
-        setStatus(
-            "Status: Connected to Field Tech"
-        );
-
-        /*
-           Tell technician that expert is ready
-           to receive the video.
-        */
-
-        dataConn.send({
-            type: "EXPERT_READY"
-        });
-
-    });
-
-
-    /* =================================================
-       DATA CONNECTION ERROR
-    ================================================= */
-
-    dataConn.on("error", function(error) {
-
-        console.error(
-            "Data connection error:",
-            error
-        );
-
-        setStatus(
-            "Connection Error",
-            "#ef4444"
-        );
-
-    });
-
-
-    /* =================================================
-       DATA CONNECTION CLOSE
-    ================================================= */
-
-    dataConn.on("close", function() {
-
-        console.log(
-            "Technician disconnected"
-        );
-
-        setStatus(
-            "Field Technician Disconnected",
-            "#ef4444"
-        );
-
-    });
-
+    setTimeout(() => {
+        const call = peer.call(roomId, null);
+        if (call) {
+            call.on('stream', (remoteStream) => {
+                const videoEl = document.getElementById('remoteVideo');
+                videoEl.srcObject = remoteStream;
+                videoEl.play().catch(console.error);
+            });
+        }
+    }, 1000);
 });
-
-
-/* =====================================================
-   RECEIVE TECHNICIAN VIDEO CALL
-===================================================== */
-
-peer.on("call", function(call) {
-
-    console.log(
-        "Incoming video call from:",
-        call.peer
-    );
-
-    mediaCall = call;
-
-
-    /*
-       IMPORTANT:
-
-       We do NOT send our own camera.
-
-       We only receive the technician's
-       AR/camera stream.
-    */
-
-    call.answer();
-
-
-    /* =================================================
-       RECEIVE VIDEO STREAM
-    ================================================= */
-
-    call.on("stream", function(remoteStream) {
-
-        console.log(
-            "Technician video stream received"
-        );
-
-        const video =
-            document.getElementById("remoteVideo");
-
-        video.srcObject = remoteStream;
-
-        video.muted = true;
-
-        video.playsInline = true;
-
-        video.autoplay = true;
-
-        video.play().catch(function(error) {
-
-            console.log(
-                "Video autoplay waiting:",
-                error
-            );
-
-        });
-
-        setStatus(
-            "LIVE • Field Technician"
-        );
-
-    });
-
-
-    /* =================================================
-       CALL ERROR
-    ================================================= */
-
-    call.on("error", function(error) {
-
-        console.error(
-            "Video call error:",
-            error
-        );
-
-        setStatus(
-            "Video Connection Error",
-            "#ef4444"
-        );
-
-    });
-
-
-    /* =================================================
-       CALL CLOSE
-    ================================================= */
-
-    call.on("close", function() {
-
-        console.log(
-            "Video call closed"
-        );
-
-        const video =
-            document.getElementById("remoteVideo");
-
-        video.srcObject = null;
-
-        setStatus(
-            "Video Disconnected",
-            "#ef4444"
-        );
-
-    });
-
-});
-
-
-/* =====================================================
-   PEER ERROR
-===================================================== */
-
-peer.on("error", function(error) {
-
-    console.error(
-        "PeerJS Error:",
-        error
-    );
-
-    if (error.type === "peer-unavailable") {
-
-        setStatus(
-            "Field Technician Not Found",
-            "#ef4444"
-        );
-
-    }
-    else {
-
-        setStatus(
-            "Connection Error",
-            "#ef4444"
-        );
-
-    }
-
-});
-
-
-/* =====================================================
-   SEND REPAIR TASK
-===================================================== */
 
 function sendTask(taskNum) {
-
     if (dataConn && dataConn.open) {
-
-        console.log(
-            "Sending task:",
-            taskNum
-        );
-
-        dataConn.send({
-
-            type: "RUN_TASK",
-
-            taskNum: taskNum
-
-        });
-
+        dataConn.send({ type: 'RUN_TASK', taskNum: taskNum });
+    } else {
+        alert("Not connected to Field Technician session!");
     }
-    else {
-
-        alert(
-            "Not connected to Field Technician session!"
-        );
-
-    }
-
 }
-
 </script>
 
 </body>
