@@ -1,258 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Repair AR - Expert Command Center</title>
+    <title>Remote Expert Console</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            height: 100vh;
-            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background: #0f172a; color: #f8fafc;
+            display: flex; height: 100vh; overflow: hidden;
         }
-
-        /* App Layout */
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 360px;
-            height: 100vh;
-            gap: 16px;
-            padding: 16px;
+        #video-container {
+            flex: 1; background: #000; display: flex;
+            justify-content: center; align-items: center; position: relative;
         }
-
-        /* Main Video Stage */
-        .stage-container {
-            position: relative;
-            background: #020617;
-            border-radius: 16px;
-            border: 1px solid #1e293b;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        video { width: 100%; height: 100%; object-fit: contain; }
+        #sidebar {
+            width: 320px; background: #1e293b;
+            border-left: 1px solid #334155; padding: 1.5rem;
+            display: flex; flex-direction: column; gap: 1.5rem;
         }
-
-        #remote-video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+        .action-btn {
+            background: #334155; color: #f8fafc; border: 1px solid #475569;
+            padding: 0.75rem; border-radius: 8px; font-weight: bold;
+            cursor: pointer; text-align: center;
         }
-
-        /* Drawing Canvas Overlay */
-        #draw-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: auto;
-            cursor: crosshair;
-        }
-
-        /* Stream Header Badge */
-        .stream-header {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(8px);
-            padding: 8px 16px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 10;
-        }
-
-        .live-dot {
-            width: 10px;
-            height: 10px;
-            background-color: #ef4444;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #ef4444;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-
-        .stream-title {
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: #e2e8f0;
-        }
-
-        /* Right Control Panel */
-        .sidebar {
-            background: #1e293b;
-            border-radius: 16px;
-            border: 1px solid #334155;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-        }
-
-        .panel-card {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .panel-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #94a3b8;
-            margin-bottom: 12px;
-        }
-
+        .action-btn:hover { background: #ffcc00; color: #000; }
         .status-badge {
-            font-size: 14px;
-            font-weight: 600;
-            color: #38bdf8;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Task Controls Grid */
-        .task-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .action-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: #f1f5f9;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .action-card:hover {
-            background: #334155;
-            border-color: #38bdf8;
-            color: #38bdf8;
-        }
-
-        .action-card:active {
-            transform: scale(0.98);
-        }
-
-        .action-card span.icon {
-            font-size: 16px;
-            opacity: 0.7;
-        }
-
-        /* Clear Canvas Button */
-        .btn-secondary {
-            background: #334155;
-            color: #f8fafc;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 8px;
-            transition: background 0.2s;
-        }
-
-        .btn-secondary:hover {
-            background: #475569;
+            position: absolute; top: 15px; left: 15px;
+            background: rgba(0, 0, 0, 0.8); padding: 0.5rem 1rem;
+            border-radius: 20px; color: #10b981; font-weight: bold; z-index: 10;
         }
     </style>
 </head>
-
 <body>
 
-<div class="dashboard">
-    <!-- Main Video Stage -->
-    <div class="stage-container">
-        <div class="stream-header">
-            <div class="live-dot"></div>
-            <span class="stream-title" id="stream-status">Connecting to Remote Peer...</span>
+<div id="video-container">
+    <div class="status-badge" id="connStatus">Connecting...</div>
+    <video id="remoteVideo" autoplay playsinline muted></video>
+</div>
+
+<div id="sidebar">
+    <h2>Remote Repair Expert</h2>
+    
+    <div>
+        <h3>Generator Controls</h3>
+        <div class="task-grid">
+            <button class="action-btn" onclick="sendTask(1)">Task 1</button>
+            <button class="action-btn" onclick="sendTask(2)">Task 2</button>
+            <button class="action-btn" onclick="sendTask(3)">Task 3</button>
+            <button class="action-btn" onclick="sendTask(4)">Task 4</button>
         </div>
-        
-        <video id remote-video autoplay playsinline muted></video>
-        <canvas id="draw-canvas"></canvas>
     </div>
 
-    <!-- Sidebar Controls -->
-    <div class="sidebar">
-        <!-- Connection Status -->
-        <div class="panel-card">
-            <div class="panel-title">Session Telemetry</div>
-            <div class="status-badge" id="telemetry-status">
-                Room: <span id="room-display">repair-session-01</span>
-            </div>
-        </div>
-
-        <!-- Drawing Tool Controls -->
-        <div class="panel-card">
-            <div class="panel-title">Annotation Tools</div>
-            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">Draw on video feed to guide the technician directly.</p>
-            <button class="btn-secondary" onclick="clearCanvas()">Clear Annotations</button>
-        </div>
-
-        <!-- Task Triggers -->
-        <div class="panel-card">
-            <div class="panel-title">Execute Task Overlay</div>
-            <div class="task-grid">
-                <button class="action-card" onclick="triggerRemoteTask(1)">
-                    1. Unscrew Fuel Cap <span class="icon">⚙️</span>
-                </button>
-                <button class="action-card" onclick="triggerRemoteTask(2)">
-                    2. Actuate Lever <span class="icon">🕹️</span>
-                </button>
-                <button class="action-card" onclick="triggerRemoteTask(3)">
-                    3. Starter Key <span class="icon">🔑</span>
-                </button>
-                <button class="action-card" onclick="triggerRemoteTask(4)">
-                    4. Flip Breaker <span class="icon">⚡</span>
-                </button>
-                <button class="action-card" onclick="triggerRemoteTask(5)">
-                    5. Emergency Stop <span class="icon">🛑</span>
-                </button>
-                <button class="action-card" onclick="triggerRemoteTask(6)">
-                    6. Mode Selector <span class="icon">🎛️</span>
-                </button>
-                <button class="action-card" onclick="triggerRemoteTask(7)">
-                    7. Cycle Start <span class="icon">▶️</span>
-                </button>
-                <button class="action-card" onclick="triggerRemoteTask(8)">
-                    8. Feed Override <span class="icon">🔄</span>
-                </button>
-            </div>
+    <div>
+        <h3>CNC Machine Controls</h3>
+        <div class="task-grid">
+            <button class="action-btn" onclick="sendTask(5)">Task 5</button>
+            <button class="action-btn" onclick="sendTask(6)">Task 6</button>
+            <button class="action-btn" onclick="sendTask(7)">Task 7</button>
+            <button class="action-btn" onclick="sendTask(8)">Task 8</button>
         </div>
     </div>
 </div>
@@ -267,20 +77,16 @@ const techId = roomId;
 const videoEl = document.getElementById('remoteVideo');
 const statusEl = document.getElementById('connStatus');
 
-// Ensure video element is explicitly muted so browsers allow autoplay
-videoEl.muted = true;
-
 let peer = new Peer(expertId);
 let dataConn = null;
 
 peer.on('open', (id) => {
     statusEl.innerText = `Connecting to Field Tech (${techId})...`;
 
-    // Establish Data Connection for triggers
     dataConn = peer.connect(techId);
     
     dataConn.on('open', () => {
-        statusEl.innerText = `Status: Connected (Awaiting Video...)`;
+        statusEl.innerText = `Status: Connected to Field Tech`;
     });
 
     dataConn.on('close', () => {
@@ -288,32 +94,27 @@ peer.on('open', (id) => {
     });
 });
 
-// Handle incoming media call from Technician
 peer.on('call', (call) => {
-    // Answer the incoming call (no local stream needed from Expert)
+    // Answer incoming call with no local stream (view only)
     call.answer();
     
     call.on('stream', (remoteStream) => {
+        videoEl.muted = true;
         videoEl.srcObject = remoteStream;
         
-        // Force playback to bypass browser autoplay restrictions
-        videoEl.play().then(() => {
-            statusEl.innerText = `Status: Streaming Live Video`;
-        }).catch((err) => {
-            console.warn("Autoplay blocked, user interaction required:", err);
-            statusEl.innerText = `Status: Click anywhere on screen to play video`;
-            
-            // Fallback click listener if browser locks autoplay
-            document.body.addEventListener('click', () => {
-                videoEl.play();
+        // Force playback safely to satisfy browser policies
+        const playPromise = videoEl.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
                 statusEl.innerText = `Status: Streaming Live Video`;
-            }, { once: true });
-        });
-    });
-
-    call.on('error', (err) => {
-        console.error("Media call error:", err);
-        statusEl.innerText = `Status: Stream Error`;
+            }).catch(() => {
+                statusEl.innerText = `Status: Click anywhere to view video`;
+                document.body.addEventListener('click', () => {
+                    videoEl.play();
+                    statusEl.innerText = `Status: Streaming Live Video`;
+                }, { once: true });
+            });
+        }
     });
 });
 
