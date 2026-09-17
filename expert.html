@@ -71,17 +71,15 @@
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('room') || 'repair-session-01';
 
-// Form deterministic Peer IDs based on room parameter
 const expertId = roomId + '-expert';
-const techId = roomId + '-tech';
+const techId = roomId; 
 
 let peer = new Peer(expertId);
 let dataConn = null;
 
 peer.on('open', (id) => {
-    document.getElementById('connStatus').innerText = `Waiting for Field Tech (${techId})...`;
+    document.getElementById('connStatus').innerText = `Connecting to Field Tech (${techId})...`;
 
-    // Attempt data connection to phone
     dataConn = peer.connect(techId);
     
     dataConn.on('open', () => {
@@ -93,9 +91,8 @@ peer.on('open', (id) => {
     });
 });
 
-// Answer incoming video call from the phone
 peer.on('call', (call) => {
-    call.answer(); // Answer without returning video
+    call.answer();
     
     call.on('stream', (remoteStream) => {
         const videoEl = document.getElementById('remoteVideo');
