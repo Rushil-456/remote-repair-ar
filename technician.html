@@ -75,16 +75,16 @@
 
 <div id="controls">
     <!-- Generator Tasks -->
-    <button id="btn-t1" class="btn" onclick="runTask(1)">Task 1</button>
-    <button id="btn-t2" class="btn" onclick="runTask(2)">Task 2</button>
-    <button id="btn-t3" class="btn" onclick="runTask(3)">Task 3</button>
-    <button id="btn-t4" class="btn" onclick="runTask(4)">Task 4</button>
+    <button id="btn-t1" class="btn" onclick="runTask(1)">Fuel Cap</button>
+    <button id="btn-t2" class="btn" onclick="runTask(2)">Lever</button>
+    <button id="btn-t3" class="btn" onclick="runTask(3)">Starter Key</button>
+    <button id="btn-t4" class="btn" onclick="runTask(4)">Circuit Breaker</button>
     
     <!-- CNC Machine Tasks -->
-    <button id="btn-t5" class="btn" onclick="runTask(5)">Task 5</button>
-    <button id="btn-t6" class="btn" onclick="runTask(6)">Task 6</button>
-    <button id="btn-t7" class="btn" onclick="runTask(7)">Task 7</button>
-    <button id="btn-t8" class="btn" onclick="runTask(8)">Task 8</button>
+    <button id="btn-t5" class="btn" onclick="runTask(5)">E-Stop</button>
+    <button id="btn-t6" class="btn" onclick="runTask(6)">Mode Selector</button>
+    <button id="btn-t7" class="btn" onclick="runTask(7)">Cycle Start</button>
+    <button id="btn-t8" class="btn" onclick="runTask(8)">Speed Override</button>
 </div>
 
 <a-scene
@@ -99,7 +99,9 @@
     <a-light type="ambient" color="#ffffff" intensity="2.0"></a-light>
     <a-light type="directional" position="1 2 2" intensity="1.5"></a-light>
 
-    <!-- TARGET 0: GENERATOR -->
+    <!-- ================================================= -->
+    <!-- TARGET 0: GENERATOR                               -->
+    <!-- ================================================= -->
     <a-entity id="generator-target" mindar-image-target="targetIndex: 0">
         <!-- TASK 1: FUEL CAP -->
         <a-entity id="task1-cap" position="-0.18 0.30 0.02" scale="0.65 0.65 0.65" visible="false">
@@ -140,13 +142,16 @@
         </a-entity>
     </a-entity>
 
-    <!-- TARGET 1: CNC MACHINE -->
+    <!-- ================================================= -->
+    <!-- TARGET 1: CNC MACHINE                             -->
+    <!-- ================================================= -->
     <a-entity id="cnc-target" mindar-image-target="targetIndex: 1">
 
         <!-- TASK 5: EMERGENCY STOP BUTTON -->
         <a-entity id="task5-estop" position="-0.32 -0.15 0.08" scale="0.95 0.95 0.95" visible="false">
             <a-cylinder position="0 0 0" radius="0.058" height="0.012" rotation="90 0 0" color="#ffcc00" material="metalness: 0.1; roughness: 0.3"></a-cylinder>
             <a-torus position="0 0 0.006" radius="0.05" radius-tubular="0.006" color="#ffdd00" material="metalness: 0.2; roughness: 0.3"></a-torus>
+            
             <a-cylinder position="0 0 0.015" radius="0.038" height="0.018" rotation="90 0 0" color="#aaaaaa" material="metalness: 0.9; roughness: 0.2"></a-cylinder>
 
             <a-entity id="estop-cap" position="0 0 0.03" rotation="0 0 0">
@@ -243,6 +248,7 @@ function initPeer() {
             if (data.type === 'RUN_TASK') runTask(data.taskNum);
         });
 
+        // Expert connected -> stream camera to expert peer
         startCallToExpert(conn.peer);
     });
 }
@@ -274,51 +280,47 @@ function clearAllTimers() {
     activeTimers = [];
 }
 
-function removeAnimations(el) {
-    if (!el) return;
-    const attrs = el.attributes;
-    for (let i = attrs.length - 1; i >= 0; i--) {
-        if (attrs[i].name.startsWith("animation")) {
-            el.removeAttribute(attrs[i].name);
-        }
-    }
-}
-
 function resetAllTasks() {
     clearAllTimers();
 
     // Reset Generator Tasks
     [task1Cap, task2Lever, task3Key, task4Breaker].forEach(el => el.setAttribute("visible", "false"));
     
-    removeAnimations(capPivot);
+    capPivot.removeAttribute("animation__rotate");
+    capPivot.removeAttribute("animation__lift");
     capPivot.setAttribute("rotation", "0 0 0");
     capPivot.setAttribute("position", "0 0 0");
 
-    removeAnimations(movingLever);
+    movingLever.removeAttribute("animation__pivot");
     movingLever.setAttribute("rotation", "0 0 -25");
 
-    removeAnimations(keyPivot);
+    keyPivot.removeAttribute("animation__insert");
+    keyPivot.removeAttribute("animation__turn");
     keyPivot.setAttribute("position", "0 0 0.18");
     keyPivot.setAttribute("rotation", "0 0 0");
 
-    removeAnimations(breakerToggle);
+    breakerToggle.removeAttribute("animation__flip");
     breakerToggle.setAttribute("rotation", "-35 0 0");
 
     // Reset CNC Tasks
     [task5Estop, task6Mode, task7CycleStart, task8Feed].forEach(el => el.setAttribute("visible", "false"));
     
-    removeAnimations(estopCap);
+    estopCap.removeAttribute("animation__press");
+    estopCap.removeAttribute("animation__twist");
+    estopCap.removeAttribute("animation__recoil");
     estopCap.setAttribute("position", "0 0 0.03");
     estopCap.setAttribute("rotation", "0 0 0");
 
-    removeAnimations(modeKnob);
+    modeKnob.removeAttribute("animation__turn");
     modeKnob.setAttribute("rotation", "0 0 0");
 
-    removeAnimations(cyclestartBtn);
+    cyclestartBtn.removeAttribute("animation__press");
+    cyclestartBtn.removeAttribute("animation__release");
+    cyclestartBtn.removeAttribute("animation__pulse");
     cyclestartBtn.setAttribute("position", "0 0 0.012");
     cyclestartBtn.setAttribute("scale", "1 1 1");
 
-    removeAnimations(feedDial);
+    feedDial.removeAttribute("animation__turn");
     feedDial.setAttribute("rotation", "0 0 -45");
 }
 
@@ -331,72 +333,73 @@ function runTask(taskNumber) {
     resetAllTasks();
 
     if (taskNumber === 1) {
-        status.innerText = "TASK 1: UNSCREW FUEL CAP";
+        status.innerText = "UNSCREW FUEL CAP";
         task1Cap.setAttribute("visible", "true");
-        capPivot.setAttribute("animation__rotate", "property: rotation; to: 0 -1080 0; dur: 3000; easing: easeInOutQuad");
-        capPivot.setAttribute("animation__lift", "property: position; to: 0 0.18 0; dur: 3000; easing: easeInOutQuad");
+        capPivot.setAttribute("animation__rotate", { property: "rotation", to: "0 -1080 0", dur: 3000, easing: "easeInOutQuad" });
+        capPivot.setAttribute("animation__lift", { property: "position", to: "0 0.18 0", dur: 3000, easing: "easeInOutQuad" });
     } 
     else if (taskNumber === 2) {
-        status.innerText = "TASK 2: ACTUATE LEVER & PIVOT";
+        status.innerText = "ACTUATE LEVER & PIVOT";
         task2Lever.setAttribute("visible", "true");
-        movingLever.setAttribute("animation__pivot", "property: rotation; from: 0 0 -25; to: 0 0 35; dur: 1000; easing: easeInOutSine; loop: 3; dir: alternate");
+        movingLever.setAttribute("animation__pivot", { property: "rotation", from: "0 0 -25", to: "0 0 35", dur: 1000, easing: "easeInOutSine", loop: 3, dir: "alternate" });
     } 
     else if (taskNumber === 3) {
-        status.innerText = "TASK 3: INSERT & TURN STARTER KEY";
+        status.innerText = "INSERT & TURN STARTER KEY";
         task3Key.setAttribute("visible", "true");
-        keyPivot.setAttribute("animation__insert", "property: position; to: 0 0 0.01; dur: 1200; easing: easeOutQuad");
+        keyPivot.setAttribute("animation__insert", { property: "position", to: "0 0 0.01", dur: 1200, easing: "easeOutQuad" });
         const turnTimer = setTimeout(() => {
-            keyPivot.setAttribute("animation__turn", "property: rotation; to: 0 0 -90; dur: 1000; easing: easeInOutQuad");
+            keyPivot.setAttribute("animation__turn", { property: "rotation", to: "0 0 -90", dur: 1000, easing: "easeInOutQuad" });
         }, 1200);
         activeTimers.push(turnTimer);
     } 
     else if (taskNumber === 4) {
-        status.innerText = "TASK 4: FLIP CIRCUIT BREAKER ON";
+        status.innerText = "FLIP CIRCUIT BREAKER ON";
         task4Breaker.setAttribute("visible", "true");
-        breakerToggle.setAttribute("animation__flip", "property: rotation; to: 35 0 0; dur: 1000; easing: easeInOutBack");
+        breakerToggle.setAttribute("animation__flip", { property: "rotation", to: "35 0 0", dur: 1000, easing: "easeInOutBack" });
     }
     else if (taskNumber === 5) {
-        status.innerText = "TASK 5: PRESS & LOCK EMERGENCY STOP";
+        status.innerText = "PRESS & LOCK EMERGENCY STOP";
         task5Estop.setAttribute("visible", "true");
-        estopCap.setAttribute("animation__press", "property: position; from: 0 0 0.03; to: 0 0 -0.03; dur: 350; easing: easeInQuad");
+        estopCap.setAttribute("animation__press", { property: "position", from: "0 0 0.03", to: "0 0 -0.03", dur: 350, easing: "easeInQuad" });
 
         const twistTimer = setTimeout(() => {
-            estopCap.setAttribute("animation__twist", "property: rotation; from: 0 0 0; to: 0 0 45; dur: 400; easing: easeInOutCubic");
+            estopCap.setAttribute("animation__twist", { property: "rotation", from: "0 0 0", to: "0 0 45", dur: 400, easing: "easeInOutCubic" });
         }, 350);
 
         const recoilTimer = setTimeout(() => {
-            estopCap.setAttribute("animation__recoil", "property: position; from: 0 0 -0.03; to: 0 0 -0.015; dur: 180; easing: easeOutBack");
+            estopCap.setAttribute("animation__recoil", { property: "position", from: "0 0 -0.03", to: "0 0 -0.015", dur: 180, easing: "easeOutBack" });
         }, 750);
 
         activeTimers.push(twistTimer, recoilTimer);
     }
     else if (taskNumber === 6) {
-        status.innerText = "TASK 6: SELECT AUTO MODE";
+        status.innerText = " SELECT AUTO MODE";
         task6Mode.setAttribute("visible", "true");
-        modeKnob.setAttribute("animation__turn", "property: rotation; to: 0 0 -90; dur: 900; easing: easeOutBack");
+        modeKnob.setAttribute("animation__turn", { property: "rotation", to: "0 0 -90", dur: 900, easing: "easeOutBack" });
     }
     else if (taskNumber === 7) {
-        status.innerText = "TASK 7: PRESS CYCLE START";
+        status.innerText = "PRESS CYCLE START";
         task7CycleStart.setAttribute("visible", "true");
-        cyclestartBtn.setAttribute("animation__press", "property: position; from: 0 0 0.012; to: 0 0 -0.040; dur: 250; easing: easeInQuad");
+        cyclestartBtn.setAttribute("animation__press", { property: "position", from: "0 0 0.012", to: "0 0 -0.040", dur: 250, easing: "easeInQuad" });
 
         const releaseTimer = setTimeout(() => {
-            cyclestartBtn.setAttribute("animation__release", "property: position; from: 0 0 -0.040; to: 0 0 0.012; dur: 300; easing: easeOutBack");
+            cyclestartBtn.setAttribute("animation__release", { property: "position", from: "0 0 -0.040", to: "0 0 0.012", dur: 300, easing: "easeOutBack" });
         }, 450);
 
         const scaleTimer = setTimeout(() => {
-            cyclestartBtn.setAttribute("animation__pulse", "property: scale; from: 1 1 1; to: 1.15 1.15 1.15; dur: 200; dir: alternate; loop: 2; easing: easeInOutSine");
+            cyclestartBtn.setAttribute("animation__pulse", { property: "scale", from: "1 1 1", to: "1.15 1.15 1.15", dur: 200, dir: "alternate", loop: 2, easing: "easeInOutSine" });
         }, 250);
 
         activeTimers.push(releaseTimer, scaleTimer);
     }
     else if (taskNumber === 8) {
-        status.innerText = "TASK 8: ADJUST FEED OVERRIDE";
+        status.innerText = "ADJUST FEED OVERRIDE";
         task8Feed.setAttribute("visible", "true");
-        feedDial.setAttribute("animation__turn", "property: rotation; from: 0 0 -45; to: 0 0 115; dur: 1400; easing: easeInOutCubic");
+        feedDial.setAttribute("animation__turn", { property: "rotation", from: "0 0 -45", to: "0 0 115", dur: 1400, easing: "easeInOutCubic" });
     }
 }
 
+// Target Event Handlers
 targetGen.addEventListener("targetFound", () => {
     activeTarget = "generator";
     showButtonsForTarget("generator");
