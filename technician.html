@@ -204,6 +204,10 @@
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('room') || 'repair-session-01';
 
+// Form deterministic Peer IDs matching expert console
+const techId = roomId + '-tech';
+const expertId = roomId + '-expert';
+
 const targetGen = document.querySelector("#generator-target");
 const targetCNC = document.querySelector("#cnc-target");
 const status = document.querySelector("#status");
@@ -233,35 +237,36 @@ let activeTarget = null;
 let peer = null;
 
 function initPeer() {
-    peer = new Peer(roomId);
+    peer = new Peer(techId);
 
     peer.on('open', (id) => {
         status.innerText = `Room Ready: ${id} | Point camera at target`;
+        connectAndStream();
     });
 
     peer.on('error', (err) => {
         console.error("PeerJS Error:", err);
     });
 
+    // Listen for data connection & send task execution
     peer.on('connection', (conn) => {
         conn.on('data', (data) => {
             if (data.type === 'RUN_TASK') runTask(data.taskNum);
         });
+        // Transmit stream when expert connects
+        connectAndStream();
     });
+}
 
-    peer.on('call', (call) => {
-        const videoEl = document.querySelector('video');
-        if (videoEl && videoEl.srcObject) {
-            call.answer(videoEl.srcObject);
-        } else {
-            setTimeout(() => {
-                const retryVideo = document.querySelector('video');
-                if (retryVideo && retryVideo.srcObject) {
-                    call.answer(retryVideo.srcObject);
-                }
-            }, 500);
-        }
-    });
+// Continuously attempt grabbing MindAR video stream and calling expert
+function connectAndStream() {
+    const videoEl = document.querySelector('video');
+    if (videoEl && videoEl.srcObject) {
+        const stream = videoEl.srcObject;
+        peer.call(expertId, stream);
+    } else {
+        setTimeout(connectAndStream, 500);
+    }
 }
 
 function showButtonsForTarget(targetType) {

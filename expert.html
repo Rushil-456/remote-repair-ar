@@ -71,14 +71,18 @@
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('room') || 'repair-session-01';
 
-let peer = new Peer();
+// Form deterministic Peer IDs based on room parameter
+const expertId = roomId + '-expert';
+const techId = roomId + '-tech';
+
+let peer = new Peer(expertId);
 let dataConn = null;
 
 peer.on('open', (id) => {
-    document.getElementById('connStatus').innerText = `Connecting to room: ${roomId}...`;
+    document.getElementById('connStatus').innerText = `Waiting for Field Tech (${techId})...`;
 
-    // Connect Data Channel to the Field Tech
-    dataConn = peer.connect(roomId);
+    // Attempt data connection to phone
+    dataConn = peer.connect(techId);
     
     dataConn.on('open', () => {
         document.getElementById('connStatus').innerText = `Status: Connected to Field Tech`;
@@ -89,14 +93,15 @@ peer.on('open', (id) => {
     });
 });
 
-// Handle incoming live video call from the phone
+// Answer incoming video call from the phone
 peer.on('call', (call) => {
-    call.answer(); // Answer without sending local stream
+    call.answer(); // Answer without returning video
     
     call.on('stream', (remoteStream) => {
         const videoEl = document.getElementById('remoteVideo');
         videoEl.srcObject = remoteStream;
         videoEl.play().catch(console.error);
+        document.getElementById('connStatus').innerText = `Status: Streaming Live Video`;
     });
 });
 
