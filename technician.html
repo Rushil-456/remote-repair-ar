@@ -184,36 +184,43 @@ function initPeer() {
         const sceneEl = document.querySelector('a-scene');
 
         const sendStream = () => {
-            // Get MindAR's camera video element and A-Frame canvas
             const videoEl = document.querySelector('video');
             const canvasEl = sceneEl.canvas;
 
-            if (videoEl && canvasEl) {
-                // Create a off-screen canvas to merge video feed + 3D AR canvas
+            // Ensure video element has loaded its actual stream dimensions
+            if (videoEl && videoEl.videoWidth > 0 && canvasEl) {
                 const mergeCanvas = document.createElement('canvas');
-                mergeCanvas.width = canvasEl.width || 640;
-                mergeCanvas.height = canvasEl.height || 480;
-                const ctx = mergeCanvas.getContext('2d');
 
-                // Draw frames continuously at 30 FPS
+                // Set canvas size to MATCH actual native camera resolution
+                mergeCanvas.width = videoEl.videoWidth;
+                mergeCanvas.height = videoEl.videoHeight;
+
+                const ctx = mergeCanvas.getContext('2d', { alpha: false });
+                
+                // Enable maximum sharpness on canvas draw operations
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
                 function drawFrame() {
+                    // Draw full resolution camera feed
                     ctx.drawImage(videoEl, 0, 0, mergeCanvas.width, mergeCanvas.height);
+                    // Overlay 3D AR canvas on top matching exact size
                     ctx.drawImage(canvasEl, 0, 0, mergeCanvas.width, mergeCanvas.height);
                     requestAnimationFrame(drawFrame);
                 }
                 drawFrame();
 
+                // Capture stream at crisp native resolution
                 const stream = mergeCanvas.captureStream(30);
                 call.answer(stream);
             } else {
-                setTimeout(sendStream, 500);
+                setTimeout(sendStream, 300);
             }
         };
 
         sendStream();
     });
 }
-
 function showButtonsForTarget(targetType) {
     [1, 2, 3, 4].forEach(num => {
         document.querySelector(`#btn-t${num}`).style.display = (targetType === 'generator') ? 'block' : 'none';
