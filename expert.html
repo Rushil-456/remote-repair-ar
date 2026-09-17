@@ -44,7 +44,8 @@
 
 <div id="video-container">
     <div class="status-badge" id="connStatus">Status: Connecting...</div>
-    <video id="remoteVideo" autoplay playsinline></video>
+    <!-- FIXED: Added autoplay, playsinline, and muted to allow video stream to display -->
+    <video id="remoteVideo" autoplay playsinline muted></video>
 </div>
 
 <div id="sidebar">
@@ -102,7 +103,9 @@ peer.on('open', (expertId) => {
             call.on('stream', (remoteStream) => {
                 const videoEl = document.getElementById('remoteVideo');
                 videoEl.srcObject = remoteStream;
-                videoEl.play();
+                videoEl.onloadedmetadata = () => {
+                    videoEl.play().catch(e => console.error("Playback error:", e));
+                };
             });
         }
     }, 1000);
