@@ -12,6 +12,12 @@
         header {
             width: 100%; padding: 15px; background: #1f1f1f; text-align: center;
             font-size: 20px; font-weight: bold; border-bottom: 2px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
+            box-sizing: border-box; padding: 15px 30px;
+        }
+        .back-btn {
+            background: #333; color: #ffcc00; border: 1px solid #ffcc00;
+            padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;
         }
         #video-container {
             margin-top: 20px; width: 90%; max-width: 1000px; height: 550px;
@@ -22,7 +28,10 @@
 </head>
 <body>
 
-<header>Remote Repair Expert - Live Technician Stream</header>
+<header>
+    <span>Remote Repair Expert - Live Feed</span>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Back to Portal</button>
+</header>
 
 <div id="video-container">
     <video id="remoteVideo" autoplay playsinline controls></video>
