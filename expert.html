@@ -258,88 +258,72 @@
 </div>
 
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetRoomId = urlParams.get('room') || 'repair-session-01';
-    document.querySelector("#room-display").innerText = targetRoomId;
+const urlParams = new URLSearchParams(window.location.search);
+const roomId = urlParams.get('room') || 'repair-session-01';
 
-    let peer = null;
-    let dataConnection = null;
+const expertId = roomId + '-expert';
+const techId = roomId; 
 
-    // Initialize PeerJS as Expert Client
-    function initExpert() {
-        // Connect with a unique expert ID suffix
-        peer = new Peer(`expert-${Math.floor(Math.random() * 1000)}`);
+const videoEl = document.getElementById('remoteVideo');
+const statusEl = document.getElementById('connStatus');
 
-        peer.on('open', () => {
-            connectToTechnician();
-        });
+// Ensure video element is explicitly muted so browsers allow autoplay
+videoEl.muted = true;
 
-        peer.on('call', (call) => {
-            call.answer(); // Answer incoming technician video stream
-            call.on('stream', (remoteStream) => {
-                const videoEl = document.querySelector('#remote-video');
-                videoEl.srcObject = remoteStream;
-                document.querySelector('#stream-status').innerText = 'LIVE VIDEO FEED';
-            });
-        });
-    }
+let peer = new Peer(expertId);
+let dataConn = null;
 
-    function connectToTechnician() {
-        dataConnection = peer.connect(targetRoomId);
+peer.on('open', (id) => {
+    statusEl.innerText = `Connecting to Field Tech (${techId})...`;
 
-        dataConnection.on('open', () => {
-            document.querySelector('#telemetry-status').innerText = 'Connected to Technician';
-        });
-
-        dataConnection.on('error', (err) => {
-            console.error("Connection Error:", err);
-            document.querySelector('#telemetry-status').innerText = 'Connection Failed';
-        });
-    }
-
-    function triggerRemoteTask(taskNum) {
-        if (dataConnection && dataConnection.open) {
-            dataConnection.send({ type: 'RUN_TASK', taskNum: taskNum });
-        } else {
-            alert("Not connected to technician yet!");
-        }
-    }
-
-    // Annotation Overlay Logic
-    const canvas = document.querySelector('#draw-canvas');
-    const ctx = canvas.getContext('2d');
-    let drawing = false;
-
-    function resizeCanvas() {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    canvas.addEventListener('mousedown', (e) => {
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
+    // Establish Data Connection for triggers
+    dataConn = peer.connect(techId);
+    
+    dataConn.on('open', () => {
+        statusEl.innerText = `Status: Connected (Awaiting Video...)`;
     });
 
-    canvas.addEventListener('mousemove', (e) => {
-        if (!drawing) return;
-        ctx.strokeStyle = '#ffcc00';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
+    dataConn.on('close', () => {
+        statusEl.innerText = `Status: Disconnected`;
+    });
+});
+
+// Handle incoming media call from Technician
+peer.on('call', (call) => {
+    // Answer the incoming call (no local stream needed from Expert)
+    call.answer();
+    
+    call.on('stream', (remoteStream) => {
+        videoEl.srcObject = remoteStream;
+        
+        // Force playback to bypass browser autoplay restrictions
+        videoEl.play().then(() => {
+            statusEl.innerText = `Status: Streaming Live Video`;
+        }).catch((err) => {
+            console.warn("Autoplay blocked, user interaction required:", err);
+            statusEl.innerText = `Status: Click anywhere on screen to play video`;
+            
+            // Fallback click listener if browser locks autoplay
+            document.body.addEventListener('click', () => {
+                videoEl.play();
+                statusEl.innerText = `Status: Streaming Live Video`;
+            }, { once: true });
+        });
     });
 
-    canvas.addEventListener('mouseup', () => drawing = false);
-    canvas.addEventListener('mouseleave', () => drawing = false);
+    call.on('error', (err) => {
+        console.error("Media call error:", err);
+        statusEl.innerText = `Status: Stream Error`;
+    });
+});
 
-    function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+function sendTask(taskNum) {
+    if (dataConn && dataConn.open) {
+        dataConn.send({ type: 'RUN_TASK', taskNum: taskNum });
+    } else {
+        alert("Not connected to Field Technician session!");
     }
-
-    document.addEventListener('DOMContentLoaded', initExpert);
+}
 </script>
 
 </body>
