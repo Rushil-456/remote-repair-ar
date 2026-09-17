@@ -74,25 +74,30 @@ const roomId = urlParams.get('room') || 'repair-session-01';
 let peer = new Peer();
 let dataConn = null;
 
-peer.on('open', () => {
+peer.on('open', (id) => {
     document.getElementById('connStatus').innerText = `Connecting to room: ${roomId}...`;
 
+    // Connect Data Channel to the Field Tech
     dataConn = peer.connect(roomId);
     
     dataConn.on('open', () => {
         document.getElementById('connStatus').innerText = `Status: Connected to Field Tech`;
     });
 
-    setTimeout(() => {
-        const call = peer.call(roomId, null);
-        if (call) {
-            call.on('stream', (remoteStream) => {
-                const videoEl = document.getElementById('remoteVideo');
-                videoEl.srcObject = remoteStream;
-                videoEl.play().catch(console.error);
-            });
-        }
-    }, 1000);
+    dataConn.on('close', () => {
+        document.getElementById('connStatus').innerText = `Status: Disconnected`;
+    });
+});
+
+// Handle incoming live video call from the phone
+peer.on('call', (call) => {
+    call.answer(); // Answer without sending local stream
+    
+    call.on('stream', (remoteStream) => {
+        const videoEl = document.getElementById('remoteVideo');
+        videoEl.srcObject = remoteStream;
+        videoEl.play().catch(console.error);
+    });
 });
 
 function sendTask(taskNum) {
