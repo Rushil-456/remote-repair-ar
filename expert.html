@@ -8,7 +8,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background: #0f172a; color: #f8fafc;
             display: flex; height: 100vh; overflow: hidden;
         }
@@ -16,60 +16,53 @@
             flex: 1; background: #000; display: flex;
             justify-content: center; align-items: center; position: relative;
         }
-        video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+        video { width: 100%; height: 100%; object-fit: contain; }
         #sidebar {
-            width: 360px; background: #1e293b;
+            width: 320px; background: #1e293b;
             border-left: 1px solid #334155; padding: 1.5rem;
             display: flex; flex-direction: column; gap: 1.5rem;
-            overflow-y: auto;
         }
-        h2 { color: #f59e0b; font-size: 1.25rem; }
-        h3 { color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
         .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
         .action-btn {
             background: #334155; color: #f8fafc; border: 1px solid #475569;
-            padding: 0.75rem; border-radius: 8px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; text-align: center;
+            padding: 0.75rem; border-radius: 8px; font-weight: bold;
+            cursor: pointer; text-align: center;
         }
-        .action-btn:hover { background: #f59e0b; color: #0f172a; }
+        .action-btn:hover { background: #ffcc00; color: #000; }
         .status-badge {
             position: absolute; top: 15px; left: 15px;
-            background: rgba(15, 23, 42, 0.85); padding: 0.5rem 1rem;
-            border-radius: 20px; border: 1px solid #334155;
-            font-size: 0.85rem; color: #10b981; font-weight: 600; z-index: 10;
+            background: rgba(0, 0, 0, 0.8); padding: 0.5rem 1rem;
+            border-radius: 20px; color: #10b981; font-weight: bold; z-index: 10;
         }
     </style>
 </head>
 <body>
 
 <div id="video-container">
-    <div class="status-badge" id="connStatus">Status: Connecting...</div>
+    <div class="status-badge" id="connStatus">Connecting...</div>
     <video id="remoteVideo" autoplay playsinline muted></video>
 </div>
 
 <div id="sidebar">
-    <div>
-        <h2>Remote Repair Expert</h2>
-        <p style="font-size: 0.8rem; color: #64748b;">Live Field Guidance Session</p>
-    </div>
-
+    <h2>Remote Repair Expert</h2>
+    
     <div>
         <h3>Generator Controls</h3>
         <div class="task-grid">
-            <button class="action-btn" onclick="sendTask(1)">1. Fuel Cap</button>
-            <button class="action-btn" onclick="sendTask(2)">2. Lever</button>
-            <button class="action-btn" onclick="sendTask(3)">3. Key</button>
-            <button class="action-btn" onclick="sendTask(4)">4. Breaker</button>
+            <button class="action-btn" onclick="sendTask(1)">Task 1</button>
+            <button class="action-btn" onclick="sendTask(2)">Task 2</button>
+            <button class="action-btn" onclick="sendTask(3)">Task 3</button>
+            <button class="action-btn" onclick="sendTask(4)">Task 4</button>
         </div>
     </div>
 
     <div>
         <h3>CNC Machine Controls</h3>
         <div class="task-grid">
-            <button class="action-btn" onclick="sendTask(5)">5. E-Stop</button>
-            <button class="action-btn" onclick="sendTask(6)">6. Mode</button>
-            <button class="action-btn" onclick="sendTask(7)">7. Cycle Start</button>
-            <button class="action-btn" onclick="sendTask(8)">8. Feed Dial</button>
+            <button class="action-btn" onclick="sendTask(5)">Task 5</button>
+            <button class="action-btn" onclick="sendTask(6)">Task 6</button>
+            <button class="action-btn" onclick="sendTask(7)">Task 7</button>
+            <button class="action-btn" onclick="sendTask(8)">Task 8</button>
         </div>
     </div>
 </div>
@@ -81,33 +74,25 @@ const roomId = urlParams.get('room') || 'repair-session-01';
 let peer = new Peer();
 let dataConn = null;
 
-peer.on('open', (expertId) => {
+peer.on('open', () => {
     document.getElementById('connStatus').innerText = `Connecting to room: ${roomId}...`;
 
-    // Connect Data Channel
     dataConn = peer.connect(roomId);
     
     dataConn.on('open', () => {
         document.getElementById('connStatus').innerText = `Status: Connected to Field Tech`;
     });
 
-    dataConn.on('error', (err) => {
-        document.getElementById('connStatus').innerText = `Data Connection Failed!`;
-    });
-
-    // Place video call to Technician
     setTimeout(() => {
         const call = peer.call(roomId, null);
         if (call) {
             call.on('stream', (remoteStream) => {
                 const videoEl = document.getElementById('remoteVideo');
                 videoEl.srcObject = remoteStream;
-                videoEl.onloadedmetadata = () => {
-                    videoEl.play().catch(e => console.error("Playback error:", e));
-                };
+                videoEl.play().catch(console.error);
             });
         }
-    }, 1200);
+    }, 1000);
 });
 
 function sendTask(taskNum) {
