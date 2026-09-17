@@ -16,13 +16,6 @@
             overflow: hidden;
         }
 
-        /* FIX #3: Sharp video scaling via CSS */
-        video {
-            object-fit: cover !important;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-        }
-
         #status {
             position: fixed;
             top: 20px;
@@ -93,10 +86,8 @@
     <button id="btn-t8" class="btn" onclick="runTask(8)">Task 8</button>
 </div>
 
-<!-- FIX #1: Added embedded & custom settings to a-scene -->
 <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 2; filterMinCF:0.0001; filterBeta: 0.001; uiLoading: no; uiError: no;"
-    embedded
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 2; filterMinCF:0.0001; filterBeta: 0.001;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
     renderer="colorManagement: true; precision: highp; antialias: true;">
@@ -235,28 +226,6 @@ const feedDial = document.querySelector("#feed-dial");
 
 let activeTimers = [];
 let activeTarget = null;
-
-// FIX #2: Force native device resolution ratio on load
-document.querySelector('a-scene').addEventListener('loaded', function () {
-    if (this.renderer) {
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-    }
-});
-
-// FIX #1 (part 2): Force continuous autofocus directly on the active stream track
-window.addEventListener("arReady", () => {
-    const video = document.querySelector("video");
-    if (video && video.srcObject) {
-        const track = video.srcObject.getVideoTracks()[0];
-        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-        
-        if (capabilities.focusMode && capabilities.focusMode.includes("continuous")) {
-            track.applyConstraints({
-                advanced: [{ focusMode: "continuous" }]
-            }).catch(err => console.warn("Focus constraint error:", err));
-        }
-    }
-});
 
 function showButtonsForTarget(targetType) {
     const genBtns = [1, 2, 3, 4];
@@ -439,6 +408,23 @@ targetCNC.addEventListener("targetLost", () => {
         resetAllTasks();
     }
 });
+
+async function applyHDCameraConstraints() {
+    try {
+        await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: "environment",
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                focusMode: "continuous"
+            }
+        });
+    } catch (e) {
+        console.warn("HD camera constraints error:", e);
+    }
+}
+
+window.addEventListener("load", applyHDCameraConstraints);
 </script>
 
 </body>
